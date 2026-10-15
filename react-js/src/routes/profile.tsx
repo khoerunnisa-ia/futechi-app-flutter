@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ProfilePage } from "@/components/futechi-pages";
+export const Route=createFileRoute("/profile")({head:()=>({meta:[{title:"Profil Anne Fremant — Futechi"},{name:"description",content:"Profil dan pengaturan aplikasi Futechi."},{property:"og:title",content:"Profil — Futechi"},{property:"og:description",content:"Kelola profil dan preferensi Futechi."},{property:"og:type",content:"profile"},{name:"twitter:card",content:"summary"}]}),component:ProfilePage});

@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { HistoryPage } from "@/components/futechi-pages";
+export const Route=createFileRoute("/history/")({head:()=>({meta:[{title:"Riwayat Kesehatan — Futechi"},{name:"description",content:"Riwayat kesehatan dan hasil analisis kamera Futechi."},{property:"og:title",content:"Riwayat Kesehatan — Futechi"},{property:"og:description",content:"Pantau anomali kesehatan peternakan."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:HistoryPage});

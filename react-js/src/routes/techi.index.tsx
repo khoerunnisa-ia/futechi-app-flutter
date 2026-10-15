@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { TechiHome } from "@/components/techi-chat";
+export const Route=createFileRoute("/techi/")({head:()=>({meta:[{title:"Techi AI — Futechi"},{name:"description",content:"Asisten cerdas untuk kesehatan ayam dan operasional kandang."},{property:"og:title",content:"Techi AI — Futechi"},{property:"og:description",content:"Konsultasi cerdas untuk peternakan Futechi."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:TechiHome});

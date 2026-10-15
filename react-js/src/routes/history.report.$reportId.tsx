@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ReportPage } from "@/components/futechi-pages";
+export const Route=createFileRoute("/history/report/$reportId")({head:()=>({meta:[{title:"Detail Laporan Analisis — Futechi"},{name:"description",content:"Detail anomali dan rekomendasi AI peternakan."},{property:"og:title",content:"Detail Laporan Analisis — Futechi"},{property:"og:description",content:"Tinjau hasil analisis kesehatan ayam."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:ReportPage});

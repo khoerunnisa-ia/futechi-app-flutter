@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { FeedingPage } from "@/components/futechi-pages";
+export const Route=createFileRoute("/feeding")({head:()=>({meta:[{title:"Manajemen Pakan — Futechi"},{name:"description",content:"Atur jadwal pakan otomatis Futechi."},{property:"og:title",content:"Manajemen Pakan — Futechi"},{property:"og:description",content:"Kelola feeding otomatis peternakan."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:FeedingPage});

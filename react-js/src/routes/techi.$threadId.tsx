@@ -1,0 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { TechiChat } from "@/components/techi-chat";
+export const Route=createFileRoute("/techi/$threadId")({head:()=>({meta:[{title:"Konsultasi Techi AI — Futechi"},{name:"description",content:"Percakapan Techi AI untuk panduan peternakan."},{property:"og:title",content:"Konsultasi Techi AI — Futechi"},{property:"og:description",content:"Panduan kesehatan ayam dan operasional kandang."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}]}),component:Thread});
+function Thread(){const {threadId}=Route.useParams();return <TechiChat threadId={threadId}/>}
