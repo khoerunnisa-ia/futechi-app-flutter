@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/router.dart';
 import '../app/theme.dart';
 import '../widgets/case_card.dart';
+import '../widgets/cctv_player.dart';
 import '../widgets/section.dart';
 
 /// Port of DashboardPage from futechi-pages.tsx.
@@ -60,6 +61,8 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         _buildHero(context),
         const SizedBox(height: 24),
+
+        // ─── Sensor cards (Suhu, Kelembapan, Amonia) ───
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth > 800 ? 3 : 1;
@@ -117,23 +120,55 @@ class _DashboardPageState extends State<DashboardPage> {
           },
         ),
         const SizedBox(height: 24),
+
+        // ─── Barn overview card (futechi-barn.jpg) — TETAP UTUH ───
         _buildBarnCard(context),
         const SizedBox(height: 24),
+
+        // ─── Row 1: Jadwal Feeding | CCTV Pemantauan Kandang ───
+        // Sesuai React: grid gap-6 lg:grid-cols-2 (baris 287–351)
         LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 980) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 3, child: _buildFeedingCard(context)),
+                  Expanded(child: _buildFeedingCard(context)),
                   const SizedBox(width: 24),
-                  Expanded(flex: 2, child: _buildDailySummary(context)),
+                  const Expanded(child: CctvCard()),
                 ],
               );
             }
             return Column(
               children: [
                 _buildFeedingCard(context),
+                const SizedBox(height: 24),
+                const CctvCard(),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+
+        // ─── Row 2: Perawatan & Kesehatan | Ringkasan harian ───
+        // Sesuai React: grid gap-6 lg:grid-cols-[1.45fr_1fr] (baris 352–400)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > 980) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                      flex: 3, child: _buildTreatmentSection(context)),
+                  const SizedBox(width: 24),
+                  Expanded(
+                      flex: 2, child: _buildDailySummary(context)),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                _buildTreatmentSection(context),
                 const SizedBox(height: 24),
                 _buildDailySummary(context),
               ],
@@ -244,10 +279,10 @@ class _DashboardPageState extends State<DashboardPage> {
             left: 16,
             top: 16,
             child: _overlayChip(
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Text(
                     '● Kandang Bendul Merisi',
                     style: TextStyle(
@@ -264,10 +299,10 @@ class _DashboardPageState extends State<DashboardPage> {
             right: 32,
             top: 0.18 * 310,
             child: _overlayChip(
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Text('Kelembapan', style: TextStyle(fontSize: 12)),
                   Text('71%', style: TextStyle(fontWeight: FontWeight.w800)),
                 ],
@@ -278,10 +313,10 @@ class _DashboardPageState extends State<DashboardPage> {
             left: 0.32 * 600,
             bottom: 0.16 * 310,
             child: _overlayChip(
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Text('Suhu', style: TextStyle(fontSize: 12)),
                   Text('31.2°C', style: TextStyle(fontWeight: FontWeight.w800)),
                 ],
@@ -402,6 +437,8 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  /// Ringkasan harian — 4 kartu 2×2
+  /// Sesuai React: Section "Ringkasan harian" (baris 389–399)
   Widget _buildDailySummary(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,91 +465,105 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontSize: 24, fontWeight: FontWeight.w800)),
                     Text(label,
                         style: const TextStyle(
-                            fontSize: 12, color: FutechiColors.mutedForeground)),
+                            fontSize: 12,
+                            color: FutechiColors.mutedForeground)),
                   ],
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 24),
-        Section(
-          title: 'Perawatan & Kesehatan',
-          child: FutechiCard(
-            child: Column(
-              children: [
-                InkWell(
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(FutechiRoutes.treatmentDetail, arguments: 'vaksin-nd'),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: FutechiColors.dangerSoft,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.build_outlined, color: FutechiColors.danger),
-                      ),
-                      const SizedBox(width: 14),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Vaksinasi Newcastle Disease',
-                                style: TextStyle(fontWeight: FontWeight.w800)),
-                            Text('Besok, 08:00 WIB',
-                                style: TextStyle(
-                                    fontSize: 13, color: FutechiColors.mutedForeground)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: FutechiColors.dangerSoft,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('Mendesak',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: FutechiColors.danger)),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: FilledButton(
-                    onPressed: _treatmentDone
-                        ? null
-                        : () {
-                            setState(() => _treatmentDone = true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Perawatan dikonfirmasi selesai')),
-                            );
-                          },
-                    child: _treatmentDone
-                        ? const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.check),
-                              SizedBox(width: 8),
-                              Text('Selesai dikonfirmasi'),
-                            ],
-                          )
-                        : const Text('Konfirmasi Selesai'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
+    );
+  }
+
+  /// Perawatan & Kesehatan — vaksinasi Newcastle + tombol konfirmasi.
+  /// Sesuai React: Section kiri di Row 2 (baris 352–388)
+  Widget _buildTreatmentSection(BuildContext context) {
+    return Section(
+      title: 'Perawatan & Kesehatan',
+      child: FutechiCard(
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () => Navigator.of(context)
+                  .pushNamed(FutechiRoutes.treatmentDetail, arguments: 'vaksin-nd'),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: FutechiColors.dangerSoft,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.build_outlined,
+                          color: FutechiColors.danger),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Vaksinasi Newcastle Disease',
+                              style:
+                                  TextStyle(fontWeight: FontWeight.w800)),
+                          Text('Besok, 08:00 WIB',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: FutechiColors.mutedForeground)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: FutechiColors.dangerSoft,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('Mendesak',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: FutechiColors.danger)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: FilledButton(
+                onPressed: _treatmentDone
+                    ? null
+                    : () {
+                        setState(() => _treatmentDone = true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Perawatan dikonfirmasi selesai')),
+                        );
+                      },
+                child: _treatmentDone
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check),
+                          SizedBox(width: 8),
+                          Text('Selesai dikonfirmasi'),
+                        ],
+                      )
+                    : const Text('Konfirmasi Selesai'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

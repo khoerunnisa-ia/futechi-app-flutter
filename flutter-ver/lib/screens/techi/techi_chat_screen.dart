@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -42,7 +40,10 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
   void initState() {
     super.initState();
     healthCase = getCaseFromThreadId(widget.threadId);
-    _client = ChatClient(baseUrl: _chatBaseUrl());
+    // ChatClient otomatis memilih mode:
+    //   - Direct LLM (OpenAI SSE) bila LLM_API_KEY terisi di .env
+    //   - Backend proxy (FUTECHI_CHAT_URL/api/chat) bila LLM_API_KEY kosong
+    _client = ChatClient();
     _client.addListener(_onChatChanged);
     _threads.load();
     _caseStore.load();
@@ -56,14 +57,6 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  String _chatBaseUrl() {
-    // Points at the react-js deployment serving POST /api/chat.
-    return const String.fromEnvironment(
-      'FUTECHI_CHAT_URL',
-      defaultValue: 'http://localhost:3000',
-    );
   }
 
   void _onChatChanged() {
@@ -259,7 +252,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
             ),
         ],
       ),
-      endDrawer: isLandscape ? null : _buildSidebar(context, isPermanent: false) as Widget,
+      endDrawer: isLandscape ? null : _buildSidebar(context, isPermanent: false),
       body: Builder(
         builder: (context) {
           // Restore from persistence exactly once per thread.

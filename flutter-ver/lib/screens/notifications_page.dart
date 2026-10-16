@@ -98,9 +98,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ),
         const SizedBox(height: 16),
         if (shown.isEmpty)
-          FutechiCard(
-            padding: const EdgeInsets.all(32),
-            child: const Text(
+          const FutechiCard(
+            padding: EdgeInsets.all(32),
+            child: Text(
               'Tidak ada notifikasi.',
               textAlign: TextAlign.center,
               style: TextStyle(color: FutechiColors.mutedForeground),

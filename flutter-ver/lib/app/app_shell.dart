@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../data/case_state.dart';
-import '../data/health_case.dart';
 import '../data/notifications.dart';
 import '../data/treatments.dart';
 import 'router.dart';
@@ -76,10 +75,10 @@ class _AppShellState extends State<AppShell> {
       title: InkWell(
         onTap: () => Navigator.of(context).pushNamed(FutechiRoutes.profile),
         borderRadius: BorderRadius.circular(12),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 22,
               backgroundColor: FutechiColors.secondarySoft,
               child: Text(
@@ -90,11 +89,11 @@ class _AppShellState extends State<AppShell> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text('Anne Fremant',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 Text('Manajer Kandang',

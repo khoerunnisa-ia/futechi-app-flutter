@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../app/theme.dart';
 import '../data/treatments.dart';
 import '../widgets/case_card.dart';
-import '../widgets/page_title.dart';
 import '../widgets/section.dart';
 
 /// Port of TreatmentPage from futechi-pages.tsx.

@@ -4,7 +4,6 @@ import '../app/theme.dart';
 import '../data/case_state.dart';
 import '../data/health_case.dart';
 import '../widgets/case_card.dart';
-import '../widgets/page_title.dart';
 import '../widgets/section.dart';
 
 /// Port of HistoryPage from futechi-pages.tsx (session filter + date picker).
@@ -20,7 +19,6 @@ enum _SessionFilter { all, morning, evening }
 class _HistoryPageState extends State<HistoryPage> {
   _SessionFilter _session = _SessionFilter.all;
   DateTime? _date;
-  DateTime? _draftDate;
 
   @override
   void initState() {
@@ -207,10 +205,10 @@ class _HistoryPageState extends State<HistoryPage> {
                 );
               }),
               if (filtered.isEmpty)
-                FutechiCard(
-                  padding: const EdgeInsets.all(32),
+                const FutechiCard(
+                  padding: EdgeInsets.all(32),
                   child: Column(
-                    children: const [
+                    children: [
                       Icon(Icons.camera_alt_outlined,
                           color: FutechiColors.mutedForeground),
                       SizedBox(height: 12),
@@ -242,7 +240,7 @@ class _HistoryPageState extends State<HistoryPage> {
         foregroundColor:
             selected ? FutechiColors.onPrimary : FutechiColors.foreground,
         minimumSize: const Size(0, 36),
-        side: BorderSide(color: FutechiColors.border),
+        side: const BorderSide(color: FutechiColors.border),
       ),
       onPressed: () => setState(() => _session = value),
       child: Text(label, style: const TextStyle(fontSize: 13)),

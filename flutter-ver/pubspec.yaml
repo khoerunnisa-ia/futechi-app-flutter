@@ -17,6 +17,14 @@ dependencies:
   uuid: ^4.5.1
   intl: ^0.19.0
   url_launcher: ^6.3.0
+  mqtt_client: ^10.13.0
+  # Konfigurasi runtime dari asset `.env` (lihat lib/config/env.dart)
+  flutter_dotenv: ^5.2.1
+  dotenv: ^4.2.0
+  # CCTV live stream — Opsi A: media_kit (libmpv backend, native RTSP TCP low-latency)
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: 1.0.7
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +35,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    # Dibaca lewat Env.load() di lib/main.dart.
+    # `.env` wajib ada saat build; salin dari `.env.example` bila belum ada.
+    - .env

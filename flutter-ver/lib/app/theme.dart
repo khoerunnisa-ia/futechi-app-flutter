@@ -101,10 +101,10 @@ class FutechiTheme {
         linearTrackColor: FutechiColors.secondarySoft,
       ),
       dividerTheme: const DividerThemeData(color: FutechiColors.border),
-      snackBarTheme: SnackBarThemeData(
+      snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: FutechiColors.foreground,
-        contentTextStyle: const TextStyle(color: FutechiColors.background),
+        contentTextStyle: TextStyle(color: FutechiColors.background),
       ),
     );
   }

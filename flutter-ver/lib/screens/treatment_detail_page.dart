@@ -125,8 +125,8 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(Icons.medication_outlined, color: FutechiColors.primary),
                     SizedBox(width: 8),
                     Text('Informasi Obat',
@@ -144,8 +144,8 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(Icons.vaccines_outlined, color: FutechiColors.primary),
                     SizedBox(width: 8),
                     Text('Dosis',
@@ -267,8 +267,8 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
                             Icon(Icons.notifications_active_outlined,
                                 color: FutechiColors.primary),
                             SizedBox(width: 8),
