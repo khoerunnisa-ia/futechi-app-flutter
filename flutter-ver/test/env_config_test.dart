@@ -59,4 +59,15 @@ void main() {
     expect(clientId, isNot('ESP32_FEEDER'));
     expect(clientId ?? 'futechi-app-xxxxxxxx', isNot('ESP32_FEEDER'));
   });
+
+  test('konfigurasi CCTV dan Direct Cloud LLM tersedia', () async {
+    await Env.load();
+
+    // Default fallbacks untuk LLM
+    expect(Env.llmBaseUrl, isNotEmpty);
+    expect(Env.llmModel, isNotEmpty);
+
+    // CCTV fallback values
+    expect(Env.cctvAutoPlay, isA<bool>());
+  });
 }

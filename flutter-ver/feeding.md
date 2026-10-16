@@ -540,3 +540,21 @@ Cakupan `test/feeder_test.dart`:
 - Tambah topik stop jarak jauh di firmware (saat ini tidak ada perintah STOP via MQTT).
 - Dukungan web melalui `MqttBrowserClient` (WebSocket), jika broker menyediakannya.
 - TLS (port 8883) dan akun broker khusus aplikasi.
+
+---
+
+## 11. Integrasi CCTV Tapo RTSP Live Stream (Tahap 2)
+
+- Backend player menggunakan **`media_kit` (Opsi A)** dengan decode video hardware-accelerated berbasis libmpv.
+- Widget `CctvCard` (`lib/widgets/cctv_player.dart`) menampilkan frame 16:9, label judul "CCTV Pemantauan Kandang", "Kualitas HD", badge merah "● LIVE", indikator status streaming, tombol stop/pause, reconnect, serta modal fullscreen dialog.
+- Layout `DashboardPage` ditata persis dengan React (`futechi-pages.tsx`): Barn Overview Card tetap utuh sebagai denah kandang, Row 1 berisi Jadwal Feeding + CCTV Kandang, dan Row 2 berisi Perawatan & Kesehatan + Ringkasan Harian (4 kartu 2×2).
+- URL RTSP kamera Tapo dikonfigurasikan di `.env` (`CCTV_RTSP_URL=rtsp://user:pass@ip:554/stream1`). Bila kosong, aplikasi beralih ke simulasi thumbnail statis `assets/images/cctv-kandang.jpg`.
+
+---
+
+## 12. Integrasi Direct Cloud LLM Techi AI (Tahap 3)
+
+- `ChatClient` (`lib/screens/techi/chat_client.dart`) mendukung koneksi langsung ke provider LLM OpenAI-compatible (OpenRouter, Groq, dll.) menggunakan Server-Sent Events (SSE) HTTP streaming tanpa bergantung pada proxy localhost backend.
+- Konfigurasi via `.env`: `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`. Otomatis fallback ke proxy legacy `FUTECHI_CHAT_URL` bila API key kosong.
+- Dilengkapi system prompt peternakan Futechi serta dukungan blok rekomendasi penyakit `SUSPECTION_RESULT_START ... SUSPECTION_RESULT_END` yang diparsing oleh `suspicion_parser.dart`.
+
