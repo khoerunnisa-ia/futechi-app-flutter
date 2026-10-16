@@ -1,80 +1,7 @@
+import 'package:flutter/material.dart';
+
 import '../app/theme.dart';
-import '../widgets/page_title.dart';
-
-/// Port of PageTitle / Section helpers from futechi-pages.tsx.
-class PageTitle extends StatelessWidget {
-  const PageTitle({
-    super.key,
-    required this.title,
-    required this.description,
-    this.action,
-  });
-
-  final String title;
-  final String description;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: const TextStyle(
-                    fontSize: 14, color: FutechiColors.mutedForeground),
-              ),
-            ],
-          ),
-        ),
-        if (action != null) ...[const SizedBox(width: 16), action!],
-      ],
-    );
-  }
-}
-
-class Section extends StatelessWidget {
-  const Section({
-    super.key,
-    required this.title,
-    required this.child,
-    this.action,
-  });
-
-  final String title;
-  final Widget child;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            if (action != null) action!,
-          ],
-        ),
-        const SizedBox(height: 16),
-        child,
-      ],
-    );
-  }
-}
+import '../data/health_case.dart';
 
 /// Rounded card container matching the `card` Tailwind class.
 class FutechiCard extends StatelessWidget {
@@ -173,7 +100,7 @@ class _CompactCaseCard extends StatelessWidget {
     final accent = isCritical ? FutechiColors.danger : FutechiColors.warning;
     return FutechiCard(
       padding: EdgeInsets.zero,
-      onTap: () => _open(context),
+      onTap: () => _open(context, healthCase),
       borderColor: accent,
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -239,7 +166,7 @@ class _ImageTopCaseCard extends StatelessWidget {
     final accent = isCritical ? FutechiColors.danger : FutechiColors.warning;
     return FutechiCard(
       padding: EdgeInsets.zero,
-      onTap: () => _open(context),
+      onTap: () => _open(context, healthCase),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

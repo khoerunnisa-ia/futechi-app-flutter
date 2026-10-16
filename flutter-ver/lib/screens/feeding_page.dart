@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 import '../widgets/page_title.dart';
+import '../widgets/case_card.dart';
 
 /// Port of FeedingPage from futechi-pages.tsx.
 class FeedingPage extends StatefulWidget {

@@ -195,44 +195,42 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         : null;
     final isLandscape = MediaQuery.sizeOf(context).width > 900;
 
-    final conversation = Expanded(
-      child: Column(
-        children: [
-          if (healthCase != null) _buildCaseCard(context, suspicion),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: _client.turns.length + (_client.status == ChatStatus.submitted ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _client.turns.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text('Techi sedang memeriksa kondisi...',
-                        style: TextStyle(color: FutechiColors.mutedForeground)),
-                  );
-                }
-                final turn = _client.turns[index];
-                return _buildMessage(context, turn);
-              },
-            ),
+    final conversation = Column(
+      children: [
+        if (healthCase != null) _buildCaseCard(context, suspicion),
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            itemCount: _client.turns.length + (_client.status == ChatStatus.submitted ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == _client.turns.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text('Techi sedang memeriksa kondisi...',
+                      style: TextStyle(color: FutechiColors.mutedForeground)),
+                );
+              }
+              final turn = _client.turns[index];
+              return _buildMessage(context, turn);
+            },
           ),
-          if (_client.error != null)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: FutechiColors.dangerSoft,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(_client.error!,
-                  style: const TextStyle(fontSize: 13, color: FutechiColors.danger)),
+        ),
+        if (_client.error != null)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: FutechiColors.dangerSoft,
+              borderRadius: BorderRadius.circular(12),
             ),
-          if (healthCase != null && suspicion == null)
-            _buildSuspectionForm(context),
-          _buildComposer(context),
-        ],
-      ),
+            child: Text(_client.error!,
+                style: const TextStyle(fontSize: 13, color: FutechiColors.danger)),
+          ),
+        if (healthCase != null && suspicion == null)
+          _buildSuspectionForm(context),
+        _buildComposer(context),
+      ],
     );
 
     final body = isLandscape && _sidebarVisible
@@ -439,7 +437,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
   }
 
   Widget _buildMessage(BuildContext context, ChatTurn turn) {
-    final isSuspicionSubmission = isSuspicionSubmission(turn.text);
+    final isSubmission = isSuspicionSubmission(turn.text);
     final result = parseSuspicionResult(turn.text);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -463,16 +461,16 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isSuspicionSubmission)
+              if (isSubmission)
                 const Row(
                   children: [
-                    Icon(Icons.stethoscope, size: 16, color: FutechiColors.onPrimary),
+                    Icon(Icons.medical_services_outlined, size: 16, color: FutechiColors.onPrimary),
                     SizedBox(width: 8),
                     Text('Form Suspection dikirim',
                         style: TextStyle(fontWeight: FontWeight.w700)),
                   ],
                 ),
-              if (!isSuspicionSubmission && !containsSuspicionBlock(turn.text))
+              if (!isSubmission && !containsSuspicionBlock(turn.text))
                 MarkdownBody(
                   data: turn.text,
                   selectable: true,
@@ -604,7 +602,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         children: [
           const Row(
             children: [
-              Icon(Icons.stethoscope, color: FutechiColors.primary),
+              Icon(Icons.medical_services_outlined, color: FutechiColors.primary),
               SizedBox(width: 8),
               Text('Form Suspection',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),

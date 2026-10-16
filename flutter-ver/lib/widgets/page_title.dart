@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/theme.dart';
+
 /// Small page-level building blocks shared by screens.
 class PageTitle extends StatelessWidget {
   const PageTitle({

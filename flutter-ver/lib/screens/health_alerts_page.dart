@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/theme.dart';
 import '../data/case_state.dart';
 import '../data/health_case.dart';
+import '../widgets/case_card.dart';
 
 /// Port of HealthAlertsPage from futechi-pages.tsx.
 class HealthAlertsPage extends StatefulWidget {
@@ -110,7 +111,7 @@ class _HealthAlertsPageState extends State<HealthAlertsPage> {
         for (final item in activeCases)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: CaseCard(item: item, status: store.statusFor(item)),
+            child: CaseCard(healthCase: item, status: store.statusFor(item)),
           ),
       ],
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/router.dart';
 import '../app/theme.dart';
 import '../widgets/case_card.dart';
+import '../widgets/section.dart';
 
 /// Port of DashboardPage from futechi-pages.tsx.
 class DashboardPage extends StatefulWidget {
@@ -82,13 +83,13 @@ class _DashboardPageState extends State<DashboardPage> {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: card.$5,
+                                color: card.$6,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Icon(card.$4, color: card.$6),
+                              child: Icon(card.$5, color: card.$7),
                             ),
                             Text(
-                              card.$3,
+                              card.$4,
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -98,13 +99,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         ),
                         const Spacer(),
-                        Text(card.$0,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600)),
                         Text(card.$1,
                             style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.w800)),
+                                fontSize: 14, fontWeight: FontWeight.w600)),
                         Text(card.$2,
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.w800)),
+                        Text(card.$3,
                             style: const TextStyle(
                                 fontSize: 12,
                                 color: FutechiColors.mutedForeground)),
@@ -386,9 +387,9 @@ class _DashboardPageState extends State<DashboardPage> {
             child: FilledButton.icon(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Feeding dimulai'),
-                    action: SnackBarAction(label: 'OK', onPressed: null),
+                  SnackBar(
+                    content: const Text('Feeding dimulai'),
+                    action: SnackBarAction(label: 'OK', onPressed: () {}),
                   ),
                 );
               },

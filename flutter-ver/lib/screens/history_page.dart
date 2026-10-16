@@ -152,7 +152,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   in sortedHealthCases.where((c) => store.statusFor(c) != CaseStatus.healthy).take(3))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: CaseCard(item: item, status: store.statusFor(item)),
+                  child: CaseCard(healthCase: item, status: store.statusFor(item)),
                 ),
             ],
           ),
@@ -200,10 +200,9 @@ class _HistoryPageState extends State<HistoryPage> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   childAspectRatio: 0.78,
-                  childCount: filtered.length,
                   children: [
                     for (final item in filtered)
-                      CaseCard(item: item, status: store.statusFor(item), imageTop: true),
+                      CaseCard(healthCase: item, status: store.statusFor(item), imageTop: true),
                   ],
                 );
               }),

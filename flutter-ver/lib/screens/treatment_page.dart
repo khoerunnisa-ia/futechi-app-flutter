@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 import '../data/treatments.dart';
+import '../widgets/case_card.dart';
 import '../widgets/page_title.dart';
 import '../widgets/section.dart';
 
@@ -96,7 +97,6 @@ class TreatmentPage extends StatelessWidget {
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               childAspectRatio: 1.05,
-              childCount: treatments.length,
               children: [
                 for (final (index, t) in treatments.indexed)
                   FutechiCard(

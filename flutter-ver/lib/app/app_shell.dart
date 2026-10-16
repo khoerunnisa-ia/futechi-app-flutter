@@ -5,6 +5,7 @@ import '../data/health_case.dart';
 import '../data/notifications.dart';
 import '../data/treatments.dart';
 import 'router.dart';
+import 'theme.dart';
 
 /// Port of react-js/src/components/app-shell.tsx
 ///

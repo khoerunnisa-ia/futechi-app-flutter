@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'page_title.dart';
+import '../app/theme.dart';
 
 export 'page_title.dart' show PageTitle;
 

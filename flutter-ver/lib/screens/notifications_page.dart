@@ -4,6 +4,7 @@ import '../app/router.dart';
 import '../app/theme.dart';
 import '../data/notifications.dart';
 import '../data/treatments.dart';
+import '../widgets/case_card.dart';
 
 /// Port of NotificationsPage from futechi-extra-pages.tsx.
 class NotificationsPage extends StatefulWidget {

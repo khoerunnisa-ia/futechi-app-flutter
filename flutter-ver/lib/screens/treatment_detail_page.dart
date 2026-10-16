@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../app/theme.dart';
 import '../data/treatments.dart';
+import '../widgets/case_card.dart';
 
 /// Port of TreatmentDetailPage from futechi-extra-pages.tsx.
 class TreatmentDetailPage extends StatefulWidget {

@@ -1,14 +1,14 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
-
 /// Port of react-js/src/hooks/use-techi-threads.ts
 ///
 /// Thread history stays device-specific: stored in shared_preferences
 /// (browser-localStorage equivalent), never synced to an account.
 library;
+
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class StoredThread {
   StoredThread({
@@ -132,6 +132,7 @@ class TechiThreads extends ChangeNotifier {
       title: title,
       updatedAt: DateTime.now().toUtc().toIso8601String(),
       messages: [welcome],
+      checklist: const [],
     );
     upsert(created);
     return created;

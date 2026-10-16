@@ -11,7 +11,8 @@ import '../screens/notifications_page.dart';
 import '../screens/profile_page.dart';
 import '../screens/treatment_detail_page.dart';
 import '../screens/treatment_page.dart';
-import 'techi/techi_chat_screen.dart';
+import '../screens/techi/techi_chat_screen.dart';
+import 'app_shell.dart';
 
 /// Flutter port of the react-js TanStack route tree.
 ///
@@ -85,7 +86,7 @@ Route<Object?> buildRoute(RouteSettings settings) {
   }
   return MaterialPageRoute<Object?>(
     settings: settings,
-    builder: (_) => page,
+    builder: (_) => AppShell(currentRoute: name, child: page),
   );
 }
 

@@ -13,7 +13,7 @@ dependencies:
   # Chat streaming with the /api/chat backend (mirrors @ai-sdk/react usage)
   flutter_markdown: ^0.7.4
   shared_preferences: ^2.3.2
-  http: ^1.2
+  http: ^1.2.8
   uuid: ^4.5.1
   intl: ^0.19.0
   url_launcher: ^6.3.0
