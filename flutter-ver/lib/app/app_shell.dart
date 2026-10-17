@@ -51,13 +51,21 @@ class _AppShellState extends State<AppShell> {
       appBar: _buildHeader(context),
       body: widget.child,
       floatingActionButton: widget.currentRoute == FutechiRoutes.dashboard
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton(
               onPressed: () =>
                   Navigator.of(context).pushNamed('${FutechiRoutes.techi}/dashboard'),
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              icon: const Icon(Icons.smart_toy_outlined),
-              label: const Text('Techi AI'),
+              tooltip: 'Techi AI',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: Image.asset(
+                  'assets/images/icon_chatbot.jpeg',
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                ),
+              ),
             )
           : null,
       bottomNavigationBar: _BottomNav(currentRoute: widget.currentRoute),
@@ -156,7 +164,7 @@ class _NavItem {
 const _navItems = [
   _NavItem(FutechiRoutes.dashboard, 'Dashboard', Icons.home_outlined),
   _NavItem(FutechiRoutes.history, 'History', Icons.history_outlined),
-  _NavItem(FutechiRoutes.treatment, 'Treatment', Icons.build_outlined),
+  _NavItem(FutechiRoutes.treatment, 'Treatment', Icons.medical_services_outlined),
   _NavItem(FutechiRoutes.feeding, 'Feeding', Icons.rice_bowl_outlined),
 ];
 

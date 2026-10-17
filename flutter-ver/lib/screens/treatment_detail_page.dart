@@ -110,11 +110,26 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
               ),
               const SizedBox(height: 12),
               Text(treatment.name,
-                  style: const TextStyle(
-                      fontSize: 26, fontWeight: FontWeight.w800)),
+                  style: Theme.of(context).textTheme.headlineSmall),
               Text(
                 '${treatment.schedule} · ${treatment.target}',
                 style: const TextStyle(color: FutechiColors.mutedForeground),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                key: const ValueKey('treatment_detail_done'),
+                onPressed: store.isDone(treatment.id)
+                    ? null
+                    : () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        await store.markDone(treatment.id);
+                        messenger.showSnackBar(SnackBar(
+                            content: Text('${treatment.name} ditandai selesai')));
+                      },
+                icon: const Icon(Icons.check, size: 18),
+                label: Text(store.isDone(treatment.id)
+                    ? 'Sudah Selesai'
+                    : 'Tandai Selesai'),
               ),
             ],
           ),
@@ -125,12 +140,12 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.medication_outlined, color: FutechiColors.primary),
-                    SizedBox(width: 8),
+                    const Icon(Icons.medication_outlined, color: FutechiColors.primary),
+                    const SizedBox(width: 8),
                     Text('Informasi Obat',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                        style: Theme.of(context).textTheme.titleMedium),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -144,12 +159,12 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.vaccines_outlined, color: FutechiColors.primary),
-                    SizedBox(width: 8),
+                    const Icon(Icons.vaccines_outlined, color: FutechiColors.primary),
+                    const SizedBox(width: 8),
                     Text('Dosis',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                        style: Theme.of(context).textTheme.titleMedium),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -192,8 +207,8 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Panduan Pemberian',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text('Panduan Pemberian',
+                  style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 16),
               for (final (index, step) in treatment.steps.indexed)
                 Padding(
@@ -267,14 +282,13 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.notifications_active_outlined,
+                            const Icon(Icons.notifications_active_outlined,
                                 color: FutechiColors.primary),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text('Reminder',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.w800)),
+                                style: Theme.of(context).textTheme.titleMedium),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -310,7 +324,7 @@ class _TreatmentDetailPageState extends State<TreatmentDetailPage> {
                   runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const Text('Tunda:',
+                    const Text('Tunda Reminder:',
                         style: TextStyle(
                             fontSize: 14, color: FutechiColors.mutedForeground)),
                     OutlinedButton(

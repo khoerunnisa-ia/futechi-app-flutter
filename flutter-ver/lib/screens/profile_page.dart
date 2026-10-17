@@ -31,18 +31,15 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Column(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 48,
                   backgroundColor: FutechiColors.primary,
                   child: Text('AF',
-                      style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: FutechiColors.onPrimary)),
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.onPrimary)),
                 ),
                 const SizedBox(height: 16),
-                const Text('Mulyo',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                Text('Mulyo',
+                    style: Theme.of(context).textTheme.displaySmall),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

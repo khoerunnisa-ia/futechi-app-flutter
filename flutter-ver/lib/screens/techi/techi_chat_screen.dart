@@ -134,6 +134,17 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
     ));
   }
 
+  void _toggleSymptom(String symptom) {
+    setState(() {
+      if (_selectedSymptoms.contains(symptom)) {
+        _selectedSymptoms = _selectedSymptoms.where((s) => s != symptom).toList();
+      } else {
+        _selectedSymptoms = [..._selectedSymptoms, symptom];
+      }
+    });
+    _persist(_client.turns);
+  }
+
   void _scrollToBottom() {
     if (!_scrollController.hasClients) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -154,6 +165,8 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
     _client.sendMessage(text: clean, threadId: widget.threadId, caseId: healthCase?.id);
   }
 
+  /// Real (non-dummy) submit — kept for when the LLM/backend is wired up.
+  // ignore: unused_element
   void _submitSuspicion() {
     if (healthCase == null ||
         _selectedSymptoms.isEmpty ||
@@ -188,24 +201,39 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         : null;
     final isLandscape = MediaQuery.sizeOf(context).width > 900;
 
+    final showCaseCard = healthCase != null;
+    final showLoading = _client.status == ChatStatus.submitted;
+    final showForm = healthCase != null && suspicion == null;
+    final turnOffset = showCaseCard ? 1 : 0;
     final conversation = Column(
       children: [
-        if (healthCase != null) _buildCaseCard(context, suspicion),
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: _client.turns.length + (_client.status == ChatStatus.submitted ? 1 : 0),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            itemCount: turnOffset +
+                _client.turns.length +
+                (showLoading ? 1 : 0) +
+                (showForm ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == _client.turns.length) {
+              if (showCaseCard && index == 0) {
+                return _buildCaseCard(context, suspicion);
+              }
+              final turnIndex = index - turnOffset;
+              if (turnIndex < _client.turns.length) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildMessage(context, _client.turns[turnIndex]),
+                );
+              }
+              if (showLoading && turnIndex == _client.turns.length) {
                 return const Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(28),
                   child: Text('Techi sedang memeriksa kondisi...',
                       style: TextStyle(color: FutechiColors.mutedForeground)),
                 );
               }
-              final turn = _client.turns[index];
-              return _buildMessage(context, turn);
+              return _buildSuspectionForm(context);
             },
           ),
         ),
@@ -220,8 +248,6 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
             child: Text(_client.error!,
                 style: const TextStyle(fontSize: 13, color: FutechiColors.danger)),
           ),
-        if (healthCase != null && suspicion == null)
-          _buildSuspectionForm(context),
         _buildComposer(context),
       ],
     );
@@ -241,8 +267,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         backgroundColor: FutechiColors.card,
         surfaceTintColor: FutechiColors.card,
         automaticallyImplyLeading: false,
-        title: const Text('Techi AI',
-            style: TextStyle(fontFamily: 'DMSans', fontWeight: FontWeight.w800)),
+        title: Text('Techi AI', style: Theme.of(context).textTheme.titleLarge),
         centerTitle: true,
         actions: [
           if (isLandscape)
@@ -322,7 +347,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                   child: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
                 ),
               ),
-            const Spacer(),
+            const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -356,7 +381,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         children: [
           Text(
             '${healthCase!.cage} · ${suspicion?.disease ?? "Pemeriksaan Gejala"}',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
           Row(
@@ -431,7 +456,14 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
 
   Widget _buildMessage(BuildContext context, ChatTurn turn) {
     final isSubmission = isSuspicionSubmission(turn.text);
-    final result = parseSuspicionResult(turn.text);
+    final hasBlock = !isSubmission && containsSuspicionBlock(turn.text);
+    final result = hasBlock ? parseSuspicionResult(turn.text) : null;
+    final isStreamingTurn = _client.busy && identical(turn, _client.turns.last);
+    final markdownText = !hasBlock
+        ? turn.text
+        : result != null || isStreamingTurn
+            ? stripSuspicionBlock(turn.text)
+            : turn.text;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       alignment:
@@ -460,12 +492,14 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                     Icon(Icons.medical_services_outlined, size: 16, color: FutechiColors.onPrimary),
                     SizedBox(width: 8),
                     Text('Form Suspection dikirim',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: FutechiColors.onPrimary)),
                   ],
                 ),
-              if (!isSubmission && !containsSuspicionBlock(turn.text))
+              if (!isSubmission && markdownText.isNotEmpty)
                 MarkdownBody(
-                  data: turn.text,
+                  data: markdownText,
                   selectable: true,
                   styleSheet: MarkdownStyleSheet(
                     p: TextStyle(
@@ -484,6 +518,13 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                   ),
                 ),
               if (result != null) _buildResultCard(result),
+              if (hasBlock && result == null && isStreamingTurn)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text('Techi sedang menyusun hasil pemeriksaan...',
+                      style: TextStyle(
+                          fontSize: 13, color: FutechiColors.mutedForeground)),
+                ),
             ],
           ),
         ),
@@ -523,8 +564,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(result.disease,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w800)),
+                    style: Theme.of(context).textTheme.titleLarge),
                 Text('Kecocokan ${result.confidence}%',
                     style: const TextStyle(
                         fontSize: 14,
@@ -593,12 +633,14 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.medical_services_outlined, color: FutechiColors.primary),
-              SizedBox(width: 8),
-              Text('Form Suspection',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              const Icon(Icons.medical_services_outlined, color: FutechiColors.primary),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text('Form Suspection',
+                    style: Theme.of(context).textTheme.titleLarge),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -622,24 +664,21 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                   for (final symptom in symptoms)
                     SizedBox(
                       width: twoColumns ? (constraints.maxWidth - 16 - 8) / 2 : double.infinity,
-                      child: CheckboxListTile(
-                        dense: true,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
-                        value: _selectedSymptoms.contains(symptom),
-                        onChanged: (_) {
-                          setState(() {
-                            if (_selectedSymptoms.contains(symptom)) {
-                              _selectedSymptoms = _selectedSymptoms
-                                  .where((s) => s != symptom)
-                                  .toList();
-                            } else {
-                              _selectedSymptoms = [..._selectedSymptoms, symptom];
-                            }
-                          });
-                          _persist(_client.turns);
-                        },
-                        title: Text(symptom, style: const TextStyle(fontSize: 14)),
+                      child: Material(
+                        color: FutechiColors.card,
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => _toggleSymptom(symptom),
+                          child: CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            value: _selectedSymptoms.contains(symptom),
+                            onChanged: (_) => _toggleSymptom(symptom),
+                            title: Text(symptom, style: const TextStyle(fontSize: 14)),
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -652,7 +691,7 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
             child: FilledButton.icon(
               onPressed: _selectedSymptoms.isEmpty || _client.busy
                   ? null
-                  : _submitSuspicion,
+                  : () => _submitSuspicionDummy(List.of(_selectedSymptoms)),
               icon: const Icon(Icons.checklist_outlined),
               label: const Text('Kirim Hasil Pemeriksaan'),
             ),
@@ -670,6 +709,98 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         ],
       ),
     );
+  }
+
+  /// Dummy mode for the inspection form (temporary until the LLM/backend
+  /// endpoint is wired): mirrors the react-js flow exactly — a user turn is
+  /// pushed, the assistant replies with a SUSPECTION_RESULT block, which is
+  /// parsed and persisted into the case card.
+  void _submitSuspicionDummy(List<String> observedSymptoms) {
+    final disease = _pickDummyDisease(observedSymptoms);
+    final confidence = _pickDummyConfidence(observedSymptoms);
+    final result = SuspicionResult(
+      disease: disease.name,
+      confidence: confidence,
+      rationale:
+          'Hasil sementara (mode dummy): gejala yang kamu centang (${observedSymptoms.join(", ")}) paling cocok dengan pola ${disease.name}.',
+      mitigation: List.of(disease.mitigation),
+      medication: disease.medication,
+      submittedAt: DateTime.now().toUtc().toIso8601String(),
+    );
+    final message = 'SUSPECTION_RESULT_START\n'
+        '{"disease": "${result.disease}", "confidence": ${result.confidence}, '
+        '"rationale": "${result.rationale}", '
+        '"mitigation": [${result.mitigation.map((e) => '"$e"').join(", ")}], '
+        '"medication": "${result.medication}"}\n'
+        'SUSPECTION_RESULT_END';
+    _client.reset([
+      ..._client.turns,
+      ChatTurn(role: 'user', text: '[FORM SUSPECTION] ${observedSymptoms.join(", ")}'),
+      ChatTurn(role: 'assistant', text: message),
+    ]);
+    if (healthCase != null) {
+      _caseStore.setSuspicionResult(healthCase!.id, result);
+    }
+    _persist(_client.turns);
+  }
+
+  static const List<_DummyDisease> _dummyDiseases = [
+    _DummyDisease(
+      name: 'Newcastle Disease (ND)',
+      keywords: ['diare', 'hijau', 'putus kaki', 'torticollis', 'leher'],
+      mitigation: [
+        'Isolasi ayam yang menunjukkan gejala di kandang terpisah.',
+        'Tingkatkan biosekuriti: desinfeksi alat, pakaian, dan area masuk.',
+        'Pantau suhu kandang dan kepadatan populasi.',
+      ],
+      medication:
+          'Belum ada obat spesifik ND; dukung dengan vitamin/elektrolit, dan wajib konsultasi dokter hewan sebelum pemberian apa pun.',
+    ),
+    _DummyDisease(
+      name: 'Avian Influenza (AI)',
+      keywords: ['napas', 'biru', 'bangkak', 'wattle', 'sianosis'],
+      mitigation: [
+        'Isolasi ayam yang menunjukkan gejala di kandang terpisah.',
+        'Tingkatkan biosekuriti: desinfeksi alat, pakaian, dan area masuk.',
+        'Batasi lalu lintas orang/peralatan antar kandang.',
+      ],
+      medication:
+          'Tidak ada obat spesifik AI; dukung dengan vitamin/elektrolit, dan wajib konsultasi dokter hewan sebelum pemberian apa pun.',
+    ),
+    _DummyDisease(
+      name: 'Infectious Bronchitis (IB)',
+      keywords: ['berak', 'berjal', 'kering', 'debu'],
+      mitigation: [
+        'Perbaiki ventilasi dan kelembapan kandang.',
+        'Sediakan air minum bersih dan ganti lebih sering.',
+        'Isolasi ayam yang menunjukkan gejala pernapasan.',
+      ],
+      medication:
+          'Dukung dengan vitamin/elektrolit, dan wajib konsultasi dokter hewan sebelum pemberian apa pun.',
+    ),
+  ];
+
+  _DummyDisease _pickDummyDisease(List<String> observed) {
+    final text = observed.join(' ').toLowerCase();
+    for (final disease in _dummyDiseases) {
+      for (final keyword in disease.keywords) {
+        if (text.contains(keyword)) return disease;
+      }
+    }
+    return _dummyDiseases.last;
+  }
+
+  int _pickDummyConfidence(List<String> observed) {
+    switch (observed.length) {
+      case 0:
+        return 60;
+      case 1:
+        return 72;
+      case 2:
+        return 82;
+      default:
+        return 90;
+    }
   }
 
   Widget _buildComposer(BuildContext context) {
@@ -715,6 +846,20 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
       ),
     );
   }
+}
+
+class _DummyDisease {
+  const _DummyDisease({
+    required this.name,
+    required this.keywords,
+    required this.mitigation,
+    required this.medication,
+  });
+
+  final String name;
+  final List<String> keywords;
+  final List<String> mitigation;
+  final String medication;
 }
 
 /// Port of suspicionSymptoms: deduplicate + pseudo-deterministic shuffle.

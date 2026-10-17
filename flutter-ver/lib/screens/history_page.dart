@@ -108,10 +108,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             color: FutechiColors.mutedForeground)),
                     const SizedBox(height: 8),
                     Text(value,
-                        style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            color: danger ? FutechiColors.danger : null)),
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(color: danger ? FutechiColors.danger : null)),
                     const SizedBox(height: 8),
                     Text(note,
                         style: const TextStyle(

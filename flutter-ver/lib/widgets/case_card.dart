@@ -170,10 +170,9 @@ class _ImageTopCaseCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: AspectRatio(
-              aspectRatio: 4 / 3,
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: caseImage(healthCase.image, fit: BoxFit.cover),
             ),
           ),
@@ -223,16 +222,23 @@ class _ImageTopCaseCard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(healthCase.chickenId,
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                          Text(healthCase.cage,
-                              style: const TextStyle(
-                                  fontSize: 12, color: FutechiColors.mutedForeground)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(healthCase.chickenId,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                            Text(healthCase.cage,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 12, color: FutechiColors.mutedForeground)),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       StatusBadge(status: status),
                     ],
                   ),
@@ -254,22 +260,15 @@ void _open(BuildContext context, HealthCase healthCase) {
 }
 
 /// Image resolution for case thumbnails.
-/// Local bundled assets for `sick`; remote placeholder handled via
-/// [Image.network] fallback for Lovable-hosted assets until Fase 6 migration.
+/// Every [CaseImage] variant maps to a bundled local asset; the switch is
+/// exhaustive, so no fallback branch is needed.
 Widget caseImage(CaseImage image,
     {double? width, double? height, BoxFit fit = BoxFit.cover}) {
   final asset = switch (image) {
     CaseImage.sick => 'assets/images/sick-chicken-feeding.jpg',
-    _ => null,
+    CaseImage.avian => 'assets/images/avian-influenza.jpg',
+    CaseImage.morning => 'assets/images/chickens-feeding-morning.jpg',
+    CaseImage.evening => 'assets/images/chickens-feeding-evening.jpg',
   };
-  if (asset != null) {
-    return Image.asset(asset, width: width, height: height, fit: fit);
-  }
-  return Container(
-    width: width,
-    height: height,
-    color: FutechiColors.secondarySoft,
-    alignment: Alignment.center,
-    child: const Icon(Icons.image_outlined, color: FutechiColors.mutedForeground),
-  );
+  return Image.asset(asset, width: width, height: height, fit: fit);
 }

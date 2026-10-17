@@ -5,6 +5,7 @@ import '../app/theme.dart';
 import '../data/notifications.dart';
 import '../data/treatments.dart';
 import '../widgets/case_card.dart';
+import 'treatment_page.dart' show treatmentIcon;
 
 /// Port of NotificationsPage from futechi-extra-pages.tsx.
 class NotificationsPage extends StatefulWidget {
@@ -53,15 +54,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Notifikasi',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
-                Text('${model.unread} notifikasi belum dibaca',
-                    style: const TextStyle(color: FutechiColors.mutedForeground)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Notifikasi',
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  Text('${model.unread} notifikasi belum dibaca',
+                      style: const TextStyle(color: FutechiColors.mutedForeground)),
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
             OutlinedButton.icon(
               onPressed: model.list.isEmpty
                   ? null
@@ -153,7 +157,7 @@ class _NotificationTile extends StatelessWidget {
                 child: Icon(
                   n.kind == NotifKind.health
                       ? Icons.videocam_outlined
-                      : Icons.build_outlined,
+                      : _treatmentIconFor(n.targetId),
                   color: FutechiColors.warning,
                 ),
               ),
@@ -194,14 +198,18 @@ class _NotificationTile extends StatelessWidget {
                         Icon(
                           n.kind == NotifKind.health
                               ? Icons.videocam_outlined
-                              : Icons.build_outlined,
+                              : _treatmentIconFor(n.targetId),
                           size: 12,
                           color: FutechiColors.mutedForeground,
                         ),
                         const SizedBox(width: 4),
-                        Text(n.time,
-                            style: const TextStyle(
-                                fontSize: 12, color: FutechiColors.mutedForeground)),
+                        Flexible(
+                          child: Text(n.time,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: FutechiColors.mutedForeground)),
+                        ),
                       ],
                     ),
                   ],
@@ -222,4 +230,9 @@ class _NotificationTile extends StatelessWidget {
       ),
     );
   }
+}
+
+IconData _treatmentIconFor(String treatmentId) {
+  final treatment = getTreatment(treatmentId);
+  return treatment != null ? treatmentIcon(treatment) : Icons.healing_outlined;
 }

@@ -25,10 +25,7 @@ class PageTitle extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                  style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: FutechiColors.foreground)),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: FutechiColors.foreground)),
               const SizedBox(height: 4),
               Text(description,
                   style: const TextStyle(

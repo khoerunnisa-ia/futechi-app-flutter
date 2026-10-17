@@ -18,6 +18,9 @@ class FeedingPage extends StatefulWidget {
   State<FeedingPage> createState() => _FeedingPageState();
 }
 
+/// Status ringkas feeder di halaman Feeding.
+enum FeederUiStatus { active, running, disconnected }
+
 class _FeedingItem {
   _FeedingItem(this.time, this.name, this.enabled);
   final String time;
@@ -66,6 +69,85 @@ class _FeedingPageState extends State<FeedingPage> {
     await simulation;
   }
 
+  void _stopFeeding() {
+    _controller.stopAllMotor();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Feeding dihentikan')));
+  }
+
+  Future<void> _connect() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await _link.connect();
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(_link.lastError != null
+            ? 'Gagal terhubung: ${_link.lastError}'
+            : 'Gagal terhubung ke feeder'),
+      ));
+    }
+  }
+
+  FeederUiStatus get _uiStatus {
+    if (_feedBusy) return FeederUiStatus.running;
+    if (_link.state == FeederLinkState.connected) return FeederUiStatus.active;
+    return FeederUiStatus.disconnected;
+  }
+
+  Widget _buildStatusRow(BuildContext context) {
+    final status = _uiStatus;
+    final (label, color) = switch (status) {
+      FeederUiStatus.active => ('Aktif', FutechiColors.success),
+      FeederUiStatus.running => ('Running', FutechiColors.warning),
+      FeederUiStatus.disconnected => ('Disconnected', FutechiColors.danger),
+    };
+    final Widget action = switch (status) {
+      FeederUiStatus.active => FilledButton.icon(
+          key: const ValueKey('feeder_action_start'),
+          onPressed: _feedNow,
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Start Feeding'),
+        ),
+      FeederUiStatus.running => FilledButton.icon(
+          key: const ValueKey('feeder_action_stop'),
+          style: FilledButton.styleFrom(backgroundColor: FutechiColors.danger),
+          onPressed: _controller.systemRunning ? _stopFeeding : null,
+          icon: const Icon(Icons.stop),
+          label: const Text('Stop'),
+        ),
+      FeederUiStatus.disconnected => OutlinedButton.icon(
+          key: const ValueKey('feeder_action_connect'),
+          onPressed: _link.isBusy || _link.isUnsupported ? null : _connect,
+          icon: _link.isBusy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.cable_outlined, size: 18),
+          label: const Text('Connect'),
+        ),
+    };
+    return FutechiCard(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          Icon(Icons.circle, size: 10, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              key: const ValueKey('feeder_status_label'),
+              style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w700, color: color),
+            ),
+          ),
+          action,
+        ],
+      ),
+    );
+  }
+
   void _addSchedule() {
     setState(() {
       _items.add(_FeedingItem('22:00', 'Sesi Tambahan', true));
@@ -80,23 +162,14 @@ class _FeedingPageState extends State<FeedingPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
       children: [
-        PageTitle(
+        const PageTitle(
           title: 'Jadwal Pakan Otomatis',
           description: 'Atur sesi feeding Kandang',
-          action: ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) => FilledButton.icon(
-              onPressed: _feedBusy ? null : _feedNow,
-              icon: const Icon(Icons.rice_bowl_outlined),
-              label: const Text('Beri Pakan Sekarang'),
-            ),
-          ),
         ),
         const SizedBox(height: 24),
         ListenableBuilder(
           listenable: Listenable.merge([_controller, _link]),
-          builder: (context, _) =>
-              _FeederStatusCard(controller: _controller, link: _link),
+          builder: (context, _) => _buildStatusRow(context),
         ),
         const SizedBox(height: 24),
         Wrap(
@@ -116,13 +189,9 @@ class _FeedingPageState extends State<FeedingPage> {
                           children: [
                             Text(
                               _items[i].time,
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                color: _items[i].enabled
+                              style: Theme.of(context).textTheme.displaySmall?.copyWith(color: _items[i].enabled
                                     ? FutechiColors.foreground
-                                    : FutechiColors.mutedForeground,
-                              ),
+                                    : FutechiColors.mutedForeground),
                             ),
                             const SizedBox(height: 8),
                             Text(_items[i].name,
@@ -157,124 +226,4 @@ class _FeedingPageState extends State<FeedingPage> {
       ],
     );
   }
-}
-
-class _FeederStatusCard extends StatelessWidget {
-  const _FeederStatusCard({required this.controller, required this.link});
-
-  final FeederController controller;
-  final FeederLink link;
-
-  static String _motorLabel(bool running, bool dir) =>
-      running ? 'Berjalan · ${dir ? 'Kanan' : 'Kiri'}' : 'Berhenti';
-
-  static String _linkLabel(FeederLinkState state) => switch (state) {
-        FeederLinkState.connected => 'Terhubung',
-        FeederLinkState.connecting => 'Menghubungkan...',
-        FeederLinkState.disconnected => 'Tidak terhubung',
-        FeederLinkState.unsupported => 'Tidak didukung',
-        FeederLinkState.error => 'Gagal terhubung',
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    final status = controller.status;
-    final statusColor = switch (status) {
-      FeederStatus.run => FutechiColors.success,
-      FeederStatus.stop => FutechiColors.danger,
-      FeederStatus.ready => FutechiColors.mutedForeground,
-    };
-    final conveyorSeconds = (controller.conveyorRemainingMs / 1000).ceil();
-    return FutechiCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text('Status Feeder',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: statusColor),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(status.label,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor)),
-              ),
-            ],
-          ),
-          if (controller.feeding) ...[
-            const SizedBox(height: 8),
-            const Text('Menyiapkan pakan...',
-                style: TextStyle(color: FutechiColors.warning)),
-          ],
-          const SizedBox(height: 12),
-          _row('Mode', '${controller.runMode} Motor'),
-          _row('Motor 1',
-              _motorLabel(controller.motor1Running, controller.motor1Dir)),
-          if (controller.runMode == 2)
-            _row('Motor 2',
-                _motorLabel(controller.motor2Running, controller.motor2Dir)),
-          _row(
-              'Conveyor',
-              controller.conveyorRunning
-                  ? 'Berjalan · $conveyorSeconds s'
-                  : 'Berhenti (${controller.conveyorTime} s)'),
-          const Divider(height: 24),
-          _row('Feeder (MQTT)', _linkLabel(link.state)),
-          _row('Status perangkat', controller.client2Status),
-          if (link.state != FeederLinkState.connected && !link.isUnsupported) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                key: const ValueKey('button_connect_hardware'),
-                onPressed: link.isBusy ? null : () => link.connect(),
-                icon: link.isBusy
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.cable_outlined, size: 18),
-                label: Text(link.isBusy
-                    ? 'Menghubungkan...'
-                    : 'Hubungkan ke Hardware'),
-              ),
-            ),
-            if (link.state == FeederLinkState.error && link.lastError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  link.lastError!,
-                  style: const TextStyle(fontSize: 12, color: FutechiColors.danger),
-                ),
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _row(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(
-                      fontSize: 13, color: FutechiColors.mutedForeground)),
-            ),
-            Text(value,
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      );
 }

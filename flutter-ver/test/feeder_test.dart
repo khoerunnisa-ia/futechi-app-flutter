@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -111,6 +112,15 @@ class FakeLink extends FeederLink {
     _state = FeederLinkState.disconnected;
     notifyListeners();
   }
+}
+
+/// Hardware whose delay waits for [gate], to hold the buzzer phase open.
+class _PendingDelayHardware extends FakeHardware {
+  _PendingDelayHardware(this.gate);
+  final Future<void> gate;
+
+  @override
+  Future<void> delay(int ms) => gate;
 }
 
 /// [FeederTopics] membaca `.env` yang tidak dimuat di lingkungan test,
@@ -848,7 +858,7 @@ void main() {
     });
   });
 
-  group('FeedingPage "Beri Pakan Sekarang"', () {
+  group('FeedingPage status row', () {
     Future<void> pumpPage(WidgetTester tester, FeederController controller,
         FeederLink link) async {
       tester.view.physicalSize = const Size(1200, 2400);
@@ -859,73 +869,125 @@ void main() {
       ));
     }
 
-    Finder feedButton() => find.widgetWithText(FilledButton, 'Beri Pakan Sekarang');
+    String statusLabel(WidgetTester tester) => tester
+        .widget<Text>(find.byKey(const ValueKey('feeder_status_label')))
+        .data!;
 
-    testWidgets('sends MQTT command and runs the logic', (tester) async {
+    Finder startButton() => find.byKey(const ValueKey('feeder_action_start'));
+    Finder stopButton() => find.byKey(const ValueKey('feeder_action_stop'));
+    Finder connectButton() =>
+        find.byKey(const ValueKey('feeder_action_connect'));
+
+    testWidgets('header no longer has "Beri Pakan Sekarang" or the status card',
+        (tester) async {
+      await pumpPage(tester, c, FakeLink());
+      await tester.pump();
+      expect(find.text('Beri Pakan Sekarang'), findsNothing);
+      expect(find.text('Status Feeder'), findsNothing);
+    });
+
+    testWidgets('connected: shows Aktif + "Start Feeding"', (tester) async {
       final link = FakeLink();
       await pumpPage(tester, c, link);
-      expect(find.text('READY'), findsOneWidget);
+      await tester.pump();
 
-      await tester.tap(feedButton());
+      expect(link.state, FeederLinkState.connected);
+      expect(statusLabel(tester), 'Aktif');
+      expect(find.widgetWithText(FilledButton, 'Start Feeding'), findsOneWidget);
+      expect(stopButton(), findsNothing);
+      expect(connectButton(), findsNothing);
+    });
+
+    testWidgets('Start Feeding sends MQTT command, runs the logic, then Stop',
+        (tester) async {
+      final link = FakeLink();
+      await pumpPage(tester, c, link);
+      await tester.pump();
+
+      await tester.tap(startButton());
       await tester.pump();
       await tester.pump();
 
       expect(link.publishCount, 1);
       expect(c.systemRunning, isTrue);
-      expect(find.text('RUN'), findsOneWidget);
       expect(find.text('Perintah pakan dikirim ke feeder'), findsOneWidget);
-      expect(find.text('Terhubung'), findsOneWidget);
-      expect(tester.widget<FilledButton>(feedButton()).onPressed, isNull);
+      expect(statusLabel(tester), 'Running');
+      expect(startButton(), findsNothing);
+      expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
 
-      await tester.tap(feedButton(), warnIfMissed: false);
+      await tester.tap(stopButton());
       await tester.pump();
-      expect(link.publishCount, 1);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(c.systemRunning, isFalse);
+      expect(c.status, FeederStatus.stop);
+      expect(find.text('Feeding dihentikan'), findsOneWidget);
+      expect(statusLabel(tester), 'Aktif');
+      expect(startButton(), findsOneWidget);
     });
 
-    testWidgets('still runs the simulation when the feeder is offline',
+    testWidgets('Stop is disabled while the buzzer/preparation phase runs',
+        (tester) async {
+      final pending = Completer<void>();
+      final slowHw = _PendingDelayHardware(pending.future);
+      final controller = FeederController(hardware: slowHw, autoTick: false);
+      final link = FakeLink();
+      await pumpPage(tester, controller, link);
+      await tester.pump();
+
+      unawaited(controller.triggerFeed('MANUAL'));
+      await tester.pump();
+
+      expect(controller.feeding, isTrue);
+      expect(statusLabel(tester), 'Running');
+      expect(tester.widget<FilledButton>(stopButton()).onPressed, isNull);
+
+      pending.complete();
+      await tester.pump();
+    });
+
+    testWidgets('offline: shows Disconnected + "Connect", connects on tap',
         (tester) async {
       final link = FakeLink(succeed: false);
       await pumpPage(tester, c, link);
       await tester.pump(const Duration(seconds: 10));
 
-      await tester.tap(feedButton());
+      expect(statusLabel(tester), 'Disconnected');
+      expect(connectButton(), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, 'Connect'), findsOneWidget);
+      expect(startButton(), findsNothing);
+
+      await tester.tap(connectButton());
       await tester.pump();
+      expect(find.text('Gagal terhubung: offline'), findsOneWidget);
+
+      link.succeed = true;
+      await tester.tap(connectButton());
       await tester.pump();
 
-      expect(link.publishCount, 0);
-      expect(c.systemRunning, isTrue);
-      expect(find.text('Feeder tidak terhubung, menjalankan simulasi saja'),
-          findsOneWidget);
-      expect(find.text('Gagal terhubung'), findsOneWidget);
+      expect(link.state, FeederLinkState.connected);
+      expect(statusLabel(tester), 'Aktif');
+      expect(connectButton(), findsNothing);
+      expect(startButton(), findsOneWidget);
     });
 
-    testWidgets('shows device status from client2/status', (tester) async {
+    testWidgets('unsupported platform: Connect is disabled', (tester) async {
+      final link = FakeLink();
+      link.setState(FeederLinkState.unsupported);
+      await pumpPage(tester, c, link);
+      await tester.pump();
+
+      expect(statusLabel(tester), 'Disconnected');
+      expect(tester.widget<OutlinedButton>(connectButton()).onPressed, isNull);
+    });
+
+    testWidgets('device status from client2/status still reaches the controller',
+        (tester) async {
       final link = FakeLink();
       await pumpPage(tester, c, link);
       link.onMessage!(FeederTopics.status, '{"pakan":"STOP"}');
       await tester.pump();
-      expect(find.text('STOP'), findsOneWidget);
-    });
-
-    testWidgets('shows "Hubungkan ke Hardware" button when disconnected/offline and hides when connected',
-        (tester) async {
-      final link = FakeLink(succeed: false);
-      await pumpPage(tester, c, link);
-      await tester.pump(const Duration(seconds: 10));
-
-      final connectBtn = find.byKey(const ValueKey('button_connect_hardware'));
-      expect(connectBtn, findsOneWidget);
-      expect(find.text('Hubungkan ke Hardware'), findsOneWidget);
-      expect(find.text('offline'), findsOneWidget);
-
-      // Now link becomes available and user taps the connect button
-      link.succeed = true;
-      await tester.tap(connectBtn);
-      await tester.pump();
-
-      expect(link.state, FeederLinkState.connected);
-      expect(find.text('Terhubung'), findsOneWidget);
-      expect(find.byKey(const ValueKey('button_connect_hardware')), findsNothing);
+      expect(c.client2Status, 'STOP');
     });
   });
 

@@ -22,18 +22,19 @@ class Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(title,
-                  style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: FutechiColors.foreground)),
-            ),
-            if (action != null) action!,
-          ],
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              Text(title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: FutechiColors.foreground)),
+              if (action != null) action!,
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         child,

@@ -5,6 +5,14 @@ import '../data/treatments.dart';
 import '../widgets/case_card.dart';
 import '../widgets/section.dart';
 
+/// Ikon sesuai jenis perawatan (vaksin, vitamin, sanitasi).
+IconData treatmentIcon(Treatment treatment) => switch (treatment.id) {
+      'vaksin-nd' => Icons.vaccines_outlined,
+      'vitamin-a' => Icons.medication_liquid_outlined,
+      'sanitasi' => Icons.sanitizer_outlined,
+      _ => Icons.healing_outlined,
+    };
+
 /// Port of TreatmentPage from futechi-pages.tsx.
 class TreatmentPage extends StatelessWidget {
   const TreatmentPage({super.key});
@@ -34,8 +42,10 @@ class TreatmentPage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Text('Batch #24',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                    Flexible(
+                      child: Text('Batch #24',
+                          style: Theme.of(context).textTheme.headlineSmall),
+                    ),
                     const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -97,7 +107,7 @@ class TreatmentPage extends StatelessWidget {
               crossAxisSpacing: 16,
               childAspectRatio: 1.05,
               children: [
-                for (final (index, t) in treatments.indexed)
+                for (final t in treatments)
                   FutechiCard(
                     onTap: () => Navigator.of(context)
                         .pushNamed('/treatment/detail', arguments: t.id),
@@ -112,14 +122,13 @@ class TreatmentPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Icon(
-                            index == 2 ? Icons.grass_outlined : Icons.build_outlined,
+                            treatmentIcon(t),
                             color: FutechiColors.warning,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Text(t.name,
-                            style: const TextStyle(
-                                fontSize: 17, fontWeight: FontWeight.w800)),
+                            style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 4),
                         Text('Target: ${t.target}',
                             style: const TextStyle(

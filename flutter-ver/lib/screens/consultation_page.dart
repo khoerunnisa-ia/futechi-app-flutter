@@ -73,8 +73,7 @@ class _ConsultationPageState extends State<ConsultationPage> {
                 StatusBadge(status: status),
                 const SizedBox(height: 16),
                 Text(current.cage,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.w800)),
+                    style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 8),
                 Text(current.symptoms,
                     style: const TextStyle(
@@ -102,7 +101,10 @@ class _ConsultationPageState extends State<ConsultationPage> {
                             if (status == CaseStatus.sick)
                               const Icon(Icons.check, size: 18),
                             const SizedBox(width: 6),
-                            const Text('Konfirmasi Sakit'),
+                            const Flexible(
+                              child: Text('Konfirmasi Sakit',
+                                  overflow: TextOverflow.ellipsis),
+                            ),
                           ],
                         ),
                       ),
@@ -123,7 +125,10 @@ class _ConsultationPageState extends State<ConsultationPage> {
                             if (status == CaseStatus.healthy)
                               const Icon(Icons.check, size: 18),
                             const SizedBox(width: 6),
-                            const Text('Tandai Sehat'),
+                            const Flexible(
+                              child: Text('Tandai Sehat',
+                                  overflow: TextOverflow.ellipsis),
+                            ),
                           ],
                         ),
                       ),
@@ -163,13 +168,13 @@ class _ConsultationPageState extends State<ConsultationPage> {
                 errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Kemungkinan dari Analisis Visual',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                    Text(
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const Text(
                       'Hasil ini bukan diagnosis pasti. Konfirmasi dengan pemeriksaan dokter hewan.',
                       style: TextStyle(
                           fontSize: 13, color: FutechiColors.mutedForeground),
@@ -198,8 +203,7 @@ class _ConsultationPageState extends State<ConsultationPage> {
                           color: FutechiColors.success)),
                   const SizedBox(height: 4),
                   Text(suspicion.disease,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800)),
+                      style: Theme.of(context).textTheme.titleLarge),
                   Text('Kecocokan ${suspicion.confidence}%',
                       style: const TextStyle(
                           fontSize: 14,
@@ -367,8 +371,8 @@ class _ConsultationPageState extends State<ConsultationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Langkah Berikutnya',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text('Langkah Berikutnya',
+              style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           const Text(
             'Buka konsultasi Techi untuk meninjau checklist observasi dan mencatat tindakan pada kasus ini.',

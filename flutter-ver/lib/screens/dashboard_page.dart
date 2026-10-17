@@ -1,10 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../app/router.dart';
 import '../app/theme.dart';
+import '../data/treatments.dart';
 import '../widgets/case_card.dart';
 import '../widgets/cctv_player.dart';
 import '../widgets/section.dart';
+import 'treatment_page.dart' show treatmentIcon;
+
+/// Jam WIB (UTC+7) dalam format `HH:mm:ss`, tidak bergantung zona waktu perangkat.
+String formatWibClock(DateTime now) =>
+    DateFormat('HH:mm:ss').format(now.toUtc().add(const Duration(hours: 7)));
 
 /// Port of DashboardPage from futechi-pages.tsx.
 class DashboardPage extends StatefulWidget {
@@ -15,7 +24,24 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  bool _treatmentDone = false;
+  TreatmentStore get _treatmentStore => TreatmentStore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _treatmentStore.load();
+    _treatmentStore.addListener(_onTreatmentsChanged);
+  }
+
+  @override
+  void dispose() {
+    _treatmentStore.removeListener(_onTreatmentsChanged);
+    super.dispose();
+  }
+
+  void _onTreatmentsChanged() {
+    if (mounted) setState(() {});
+  }
 
   static const _sensorCards = [
     (
@@ -66,52 +92,78 @@ class _DashboardPageState extends State<DashboardPage> {
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth > 800 ? 3 : 1;
-            return GridView.count(
-              crossAxisCount: columns,
+            return GridView(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: columns == 3 ? 1.1 : 2.4,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 16,
+                mainAxisExtent: 84,
+              ),
               children: [
                 for (final card in _sensorCards)
                   FutechiCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: card.$6,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Icon(card.$5, color: card.$7),
-                            ),
-                            Text(
-                              card.$4,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: FutechiColors.success,
-                              ),
-                            ),
-                          ],
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: card.$6,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(card.$5, color: card.$7),
                         ),
-                        const Spacer(),
-                        Text(card.$1,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600)),
-                        Text(card.$2,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.w800)),
-                        Text(card.$3,
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: FutechiColors.mutedForeground)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(card.$1,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600)),
+                              Text(card.$3,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: FutechiColors.mutedForeground)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(card.$2,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall),
+                              ),
+                              Text(
+                                card.$4,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: FutechiColors.success,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -182,17 +234,20 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildHero(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: SizedBox(
-        height: 310,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 310),
         child: Stack(
-          fit: StackFit.expand,
           children: [
-            Image.asset(
-              'assets/images/futechi-hero-chickens.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: FutechiColors.foreground),
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/futechi-hero-chickens.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: FutechiColors.foreground),
+              ),
             ),
-            DecoratedBox(
+            Positioned.fill(
+              child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
@@ -204,8 +259,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
               ),
-            ),
+            )),
             Container(
+              constraints: const BoxConstraints(minHeight: 310),
               padding: const EdgeInsets.all(32),
               alignment: Alignment.centerLeft,
               child: ConstrainedBox(
@@ -230,13 +286,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Pusat Informasi Peternakan',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        color: FutechiColors.background,
-                      ),
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.background),
                     ),
                     const SizedBox(height: 12),
                     const Text(
@@ -248,7 +300,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Icon(Icons.schedule_outlined, size: 16, color: Colors.white60),
                         SizedBox(width: 8),
-                        Text('Update terakhir: Hari ini, 07:41',
+                        WibClock(
                             style: TextStyle(fontSize: 12, color: Colors.white60)),
                       ],
                     ),
@@ -360,8 +412,7 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Row(
           children: [
             Text(time,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w800, color: FutechiColors.primary)),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: FutechiColors.primary)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -395,8 +446,8 @@ class _DashboardPageState extends State<DashboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Jadwal Feeding',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text('Jadwal Feeding',
+                  style: Theme.of(context).textTheme.titleLarge),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
@@ -420,16 +471,10 @@ class _DashboardPageState extends State<DashboardPage> {
             width: double.infinity,
             height: 48,
             child: FilledButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Feeding dimulai'),
-                    action: SnackBarAction(label: 'OK', onPressed: () {}),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Jalankan Feeding Sekarang'),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(FutechiRoutes.feeding),
+              icon: const Icon(Icons.arrow_forward),
+              label: const Text('Jadwal Feeding'),
             ),
           ),
         ],
@@ -444,29 +489,43 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Section(title: 'Ringkasan harian', child: SizedBox.shrink()),
-        GridView.count(
-          crossAxisCount: 2,
+        GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.4,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            mainAxisExtent: 72,
+          ),
           children: [
             for (final (icon, value, label) in _dailyCards)
               FutechiCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Row(
                   children: [
                     Icon(icon, color: FutechiColors.primary),
-                    const Spacer(),
-                    Text(value,
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.w800)),
-                    Text(label,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: FutechiColors.mutedForeground)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(value,
+                                style: Theme.of(context).textTheme.headlineSmall),
+                          ),
+                          Text(label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: FutechiColors.mutedForeground)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -476,94 +535,196 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  /// Perawatan & Kesehatan — vaksinasi Newcastle + tombol konfirmasi.
+  /// Perawatan & Kesehatan — 2 jadwal terdekat dari [TreatmentStore].
   /// Sesuai React: Section kiri di Row 2 (baris 352–388)
   Widget _buildTreatmentSection(BuildContext context) {
+    final upcoming = _treatmentStore.upcoming(limit: 2);
     return Section(
       title: 'Perawatan & Kesehatan',
+      action: TextButton(
+        onPressed: () => Navigator.of(context).pushNamed(FutechiRoutes.treatment),
+        child: const Text('Lihat semua'),
+      ),
       child: FutechiCard(
-        child: Column(
-          children: [
-            InkWell(
-              onTap: () => Navigator.of(context)
-                  .pushNamed(FutechiRoutes.treatmentDetail, arguments: 'vaksin-nd'),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: FutechiColors.dangerSoft,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(Icons.build_outlined,
-                          color: FutechiColors.danger),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Vaksinasi Newcastle Disease',
-                              style:
-                                  TextStyle(fontWeight: FontWeight.w800)),
-                          Text('Besok, 08:00 WIB',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: FutechiColors.mutedForeground)),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: FutechiColors.dangerSoft,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text('Mendesak',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: FutechiColors.danger)),
-                    ),
+        child: upcoming.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text('Semua perawatan sudah selesai.',
+                    style: TextStyle(color: FutechiColors.mutedForeground)),
+              )
+            : Column(
+                children: [
+                  for (final (index, t) in upcoming.indexed) ...[
+                    if (index > 0) const Divider(height: 32),
+                    _buildTreatmentRow(context, t),
                   ],
-                ),
+                ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildTreatmentRow(BuildContext context, Treatment t) {
+    final urgent = t.status == TreatmentStatus.mendesak;
+    final snoozed = _treatmentStore.reminderFor(t.id).snoozedUntil;
+    return Column(
+      children: [
+        InkWell(
+          key: ValueKey('treatment_row_${t.id}'),
+          onTap: () => Navigator.of(context)
+              .pushNamed(FutechiRoutes.treatmentDetail, arguments: t.id),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: urgent
+                        ? FutechiColors.dangerSoft
+                        : FutechiColors.secondarySoft,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(treatmentIcon(t),
+                      color: urgent
+                          ? FutechiColors.danger
+                          : FutechiColors.primary),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(t.name,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
+                      Text(
+                          snoozed != null
+                              ? 'Ditunda hingga ${DateFormat('d MMM, HH:mm').format(snoozed)}'
+                              : t.schedule,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              color: FutechiColors.mutedForeground)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: urgent
+                        ? FutechiColors.dangerSoft
+                        : FutechiColors.secondarySoft,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(urgent ? 'Mendesak' : 'Terjadwal',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: urgent
+                              ? FutechiColors.danger
+                              : FutechiColors.primary)),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: FilledButton(
-                onPressed: _treatmentDone
-                    ? null
-                    : () {
-                        setState(() => _treatmentDone = true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Perawatan dikonfirmasi selesai')),
-                        );
-                      },
-                child: _treatmentDone
-                    ? const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check),
-                          SizedBox(width: 8),
-                          Text('Selesai dikonfirmasi'),
-                        ],
-                      )
-                    : const Text('Konfirmasi Selesai'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TreatmentSnoozeButton(treatment: t),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton.icon(
+                key: ValueKey('treatment_done_${t.id}'),
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  await _treatmentStore.markDone(t.id);
+                  messenger.showSnackBar(SnackBar(
+                      content: Text('${t.name} ditandai selesai')));
+                },
+                icon: const Icon(Icons.check, size: 18),
+                label: const Text('Tandai Selesai'),
               ),
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+/// Tombol "Tunda Reminder" dengan pilihan 1 jam / 3 jam / besok.
+class TreatmentSnoozeButton extends StatelessWidget {
+  const TreatmentSnoozeButton({super.key, required this.treatment});
+
+  final Treatment treatment;
+
+  static const options = [
+    ('1 jam', Duration(hours: 1)),
+    ('3 jam', Duration(hours: 3)),
+    ('Besok', Duration(hours: 24)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuAnchor(
+      menuChildren: [
+        for (final (label, duration) in options)
+          MenuItemButton(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              await TreatmentStore.instance.snooze(treatment.id, duration);
+              messenger.showSnackBar(SnackBar(
+                  content: Text('Reminder ${treatment.name} ditunda $label')));
+            },
+            child: Text(label),
+          ),
+      ],
+      builder: (context, controller, _) => OutlinedButton.icon(
+        key: ValueKey('treatment_snooze_${treatment.id}'),
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+        icon: const Icon(Icons.snooze_outlined, size: 18),
+        label: const Text('Tunda Reminder'),
       ),
     );
+  }
+}
+
+/// Jam live WIB untuk hero dashboard, diperbarui setiap detik.
+class WibClock extends StatefulWidget {
+  const WibClock({super.key, this.style});
+
+  final TextStyle? style;
+
+  @override
+  State<WibClock> createState() => _WibClockState();
+}
+
+class _WibClockState extends State<WibClock> {
+  late Timer _timer;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('${formatWibClock(_now)} · WIB', style: widget.style);
   }
 }

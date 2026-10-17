@@ -53,9 +53,9 @@ class _HealthAlertsPageState extends State<HealthAlertsPage> {
           label: const Text('Kembali ke History'),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Kasus Kesehatan Aktif',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         const Text(
           'Ayam sakit dan temuan yang masih menunggu konfirmasi',
@@ -76,10 +76,7 @@ class _HealthAlertsPageState extends State<HealthAlertsPage> {
                             color: FutechiColors.mutedForeground)),
                     const SizedBox(height: 8),
                     Text(waiting.toString(),
-                        style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            color: FutechiColors.warning)),
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.warning)),
                   ],
                 ),
               ),
@@ -97,10 +94,7 @@ class _HealthAlertsPageState extends State<HealthAlertsPage> {
                             color: FutechiColors.mutedForeground)),
                     const SizedBox(height: 8),
                     Text(sick.toString(),
-                        style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            color: FutechiColors.danger)),
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.danger)),
                   ],
                 ),
               ),

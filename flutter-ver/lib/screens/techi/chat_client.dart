@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 import '../../config/env.dart';
+import 'suspicion_parser.dart';
 
 /// Client untuk Techi AI Chat.
 ///
@@ -39,6 +40,7 @@ class ChatClient extends ChangeNotifier {
 
   StreamSubscription<String>? _subscription;
   final StringBuffer _assistantBuffer = StringBuffer();
+  bool _stopRequested = false;
 
   bool get busy =>
       status == ChatStatus.submitted || status == ChatStatus.streaming;
@@ -58,6 +60,7 @@ class ChatClient extends ChangeNotifier {
     String? caseId,
   }) async {
     if (busy || text.trim().isEmpty) return;
+    _stopRequested = false;
     error = null;
     status = ChatStatus.submitted;
     turns = [...turns, ChatTurn(role: 'user', text: text.trim())];
@@ -69,7 +72,7 @@ class ChatClient extends ChangeNotifier {
       } else {
         await _sendProxy(threadId: threadId, caseId: caseId);
       }
-      status = ChatStatus.done;
+      if (status != ChatStatus.error) status = ChatStatus.done;
     } catch (e) {
       error = 'Techi AI sedang tidak tersedia.';
       status = ChatStatus.error;
@@ -81,6 +84,7 @@ class ChatClient extends ChangeNotifier {
   }
 
   void stop() {
+    _stopRequested = true;
     _subscription?.cancel();
     if (status == ChatStatus.streaming || status == ChatStatus.submitted) {
       status = ChatStatus.done;
@@ -163,6 +167,7 @@ class ChatClient extends ChangeNotifier {
     // Parse OpenAI SSE: "data: {...}\n\n" atau "data: [DONE]\n\n"
     final buffer = StringBuffer();
     await for (final chunk in response.stream.transform(utf8.decoder)) {
+      if (_stopRequested) break;
       buffer.write(chunk);
       // Proses baris-baris yang lengkap
       final raw = buffer.toString();
@@ -234,7 +239,7 @@ class ChatClient extends ChangeNotifier {
               'id': turn.id,
               'role': turn.role,
               'parts': [
-                {'type': 'text', 'text': turn.text},
+                {'type': 'text', 'text': proxyTurnText(turn)},
               ],
             },
         ],
@@ -255,10 +260,11 @@ class ChatClient extends ChangeNotifier {
 
     _beginAssistantTurn();
 
-    // UIMessage streams: "0:\"text\"" for text parts
+    // UI message stream (SSE `data: {...}`) atau data stream lama `0:"text"`.
     await for (final chunk in response.stream
         .transform(utf8.decoder)
         .transform(const LineSplitter())) {
+      if (_stopRequested) break;
       if (chunk.isEmpty) continue;
       final parsed = _parseProxyStreamLine(chunk);
       if (parsed != null) {
@@ -268,11 +274,46 @@ class ChatClient extends ChangeNotifier {
     }
   }
 
+  /// Instruksi format blok SUSPECTION_RESULT untuk mode proxy.
+  ///
+  /// AI SDK 7 di `/api/chat` menolak pesan `role: system` di dalam `messages`,
+  /// jadi instruksi ditempelkan pada pesan `[FORM SUSPECTION]` itu sendiri.
+  static const suspicionFormatInstruction =
+      'Jawaban wajib hanya berupa blok berikut tanpa markdown tambahan:\n'
+      'SUSPECTION_RESULT_START\n'
+      '{"disease": "<Nama Penyakit>", "confidence": 85, "rationale": "<Alasan singkat>", "mitigation": ["<Tindakan 1>", "<Tindakan 2>", "<Tindakan 3>"], "medication": "<Saran penanganan/kelas obat tanpa dosis, selalu mewajibkan persetujuan dokter hewan>"}\n'
+      'SUSPECTION_RESULT_END';
+
+  @visibleForTesting
+  static String proxyTurnText(ChatTurn turn) =>
+      turn.role == 'user' && isSuspicionSubmission(turn.text)
+          ? '${turn.text}\n\n$suspicionFormatInstruction'
+          : turn.text;
+
   String? _parseProxyStreamLine(String line) {
+    if (line.startsWith('data:')) {
+      final data = line.substring(5).trim();
+      if (data.isEmpty || data == '[DONE]') return null;
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is! Map) return null;
+        switch (decoded['type']) {
+          case 'text-delta':
+            final delta = decoded['delta'];
+            return delta is String ? delta : null;
+          case 'error':
+            final text = decoded['errorText'];
+            if (text is String) error = text;
+        }
+      } on FormatException {
+        // Ignore unparseable SSE chunks
+      }
+      return null;
+    }
     if (line.length < 2) return null;
     final prefix = line[0];
-    if (prefix == '0') {
-      final quoted = line.substring(1);
+    if (prefix == '0' && line[1] == ':') {
+      final quoted = line.substring(2);
       try {
         final decoded = jsonDecode(quoted);
         return decoded is String ? decoded : null;

@@ -17,6 +17,9 @@ class Treatment {
     required this.name,
     required this.schedule,
     required this.dueLabel,
+    required this.dueInDays,
+    required this.dueHour,
+    required this.dueMinute,
     required this.target,
     required this.status,
     required this.product,
@@ -33,6 +36,11 @@ class Treatment {
   final String name;
   final String schedule;
   final String dueLabel;
+
+  /// Jadwal relatif terhadap hari ini, dipakai untuk mengurutkan jadwal.
+  final int dueInDays;
+  final int dueHour;
+  final int dueMinute;
   final String target;
   final TreatmentStatus status;
   final String product;
@@ -43,6 +51,9 @@ class Treatment {
   final List<String> steps;
   final String buyUrl;
   final String tutorialUrl;
+
+  DateTime dueAt(DateTime now) =>
+      DateTime(now.year, now.month, now.day + dueInDays, dueHour, dueMinute);
 }
 
 const List<Treatment> treatments = [
@@ -51,6 +62,9 @@ const List<Treatment> treatments = [
     name: 'Vaksinasi ND-Gumboro',
     schedule: 'Hari ini, 08:00 WIB',
     dueLabel: 'Hari ini',
+    dueInDays: 0,
+    dueHour: 8,
+    dueMinute: 0,
     target: 'Batch #24',
     status: TreatmentStatus.mendesak,
     product: 'Vaksin ND-IB Aktif (contoh)',
@@ -74,6 +88,9 @@ const List<Treatment> treatments = [
     name: 'Pemberian Vitamin A',
     schedule: 'Dalam 3 hari, 07:30 WIB',
     dueLabel: 'Dalam 3 hari',
+    dueInDays: 3,
+    dueHour: 7,
+    dueMinute: 30,
     target: 'Batch #24',
     status: TreatmentStatus.terjadwal,
     product: 'Multivitamin Unggas Larut Air (contoh)',
@@ -96,6 +113,9 @@ const List<Treatment> treatments = [
     name: 'Pembersihan Kandang',
     schedule: 'Dalam 5 hari, 09:00 WIB',
     dueLabel: 'Dalam 5 hari',
+    dueInDays: 5,
+    dueHour: 9,
+    dueMinute: 0,
     target: 'Batch #24',
     status: TreatmentStatus.terjadwal,
     product: 'Desinfektan Kandang (contoh)',
@@ -149,9 +169,11 @@ class TreatmentStore extends ChangeNotifier {
 
   static const _reminderKey = 'futechi-reminders-v1';
   static const _readKey = 'futechi-notif-read-v1';
+  static const _doneKey = 'futechi-treatment-done-v1';
 
   Map<String, Reminder> _reminders = {};
   Set<String> _readIds = {};
+  Set<String> _doneIds = {};
   bool _loaded = false;
   bool get loaded => _loaded;
 
@@ -160,6 +182,9 @@ class TreatmentStore extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _reminders = _decodeReminders(prefs.getString(_reminderKey));
     _readIds = (jsonDecode(prefs.getString(_readKey) ?? '[]') as List<dynamic>? ?? [])
+        .whereType<String>()
+        .toSet();
+    _doneIds = (jsonDecode(prefs.getString(_doneKey) ?? '[]') as List<dynamic>? ?? [])
         .whereType<String>()
         .toSet();
     _loaded = true;
@@ -200,6 +225,30 @@ class TreatmentStore extends ChangeNotifier {
   }
 
   bool isRead(String id) => _readIds.contains(id);
+
+  bool isDone(String treatmentId) => _doneIds.contains(treatmentId);
+
+  Future<void> markDone(String treatmentId) async {
+    _doneIds = {..._doneIds, treatmentId};
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_doneKey, jsonEncode(_doneIds.toList()));
+    notifyListeners();
+  }
+
+  /// Waktu pengingat berikutnya: waktu tunda bila ada, selain itu jadwal.
+  DateTime nextReminderAt(Treatment treatment, DateTime now) =>
+      reminderFor(treatment.id).snoozedUntil ?? treatment.dueAt(now);
+
+  /// Perawatan yang belum selesai, diurutkan dari waktu terdekat.
+  List<Treatment> upcoming({DateTime? now, int? limit}) {
+    final reference = now ?? DateTime.now();
+    final pending = [
+      for (final t in treatments)
+        if (!isDone(t.id)) t,
+    ]..sort((a, b) =>
+        nextReminderAt(a, reference).compareTo(nextReminderAt(b, reference)));
+    return limit == null ? pending : pending.take(limit).toList();
+  }
 }
 
 Map<String, Reminder> _decodeReminders(String? raw) {

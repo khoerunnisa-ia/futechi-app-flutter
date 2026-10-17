@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Futechi theme, converted from react-js/src/styles.css design tokens
-/// and the Tailwind classes used across pages (DM Sans display, Manrope body).
+/// and the Tailwind classes used across pages.
+///
+/// Tipografi: Space Grotesk untuk heading (display/headline/title),
+/// DM Sans untuk body/label, lewat paket google_fonts.
 class FutechiColors {
   static const primary = Color(0xFF2F6B3A); // green — tombol utama & aksen
   static const onPrimary = Color(0xFFFFFFFF);
@@ -21,6 +25,46 @@ class FutechiColors {
 }
 
 class FutechiTheme {
+  /// Skala ukuran font:
+  /// - displaySmall 30 — judul hero, angka besar
+  /// - headlineSmall 24 — judul halaman, nilai statistik
+  /// - titleLarge 20 — judul section/kartu
+  /// - titleMedium 17 — sub-judul kartu
+  /// - bodyLarge 15, bodyMedium 14 (default), bodySmall 12 (caption), labelSmall 11
+  static TextTheme buildTextTheme(TextTheme base) {
+    TextStyle heading(TextStyle? style, double size) =>
+        GoogleFonts.spaceGrotesk(textStyle: style).copyWith(
+          fontSize: size,
+          fontWeight: FontWeight.w700,
+          height: 1.2,
+          color: FutechiColors.foreground,
+        );
+    TextStyle body(TextStyle? style, double size,
+            [FontWeight weight = FontWeight.w400]) =>
+        GoogleFonts.dmSans(textStyle: style).copyWith(
+          fontSize: size,
+          fontWeight: weight,
+          color: FutechiColors.foreground,
+        );
+    return base.copyWith(
+      displayLarge: heading(base.displayLarge, 40),
+      displayMedium: heading(base.displayMedium, 34),
+      displaySmall: heading(base.displaySmall, 30),
+      headlineLarge: heading(base.headlineLarge, 28),
+      headlineMedium: heading(base.headlineMedium, 26),
+      headlineSmall: heading(base.headlineSmall, 24),
+      titleLarge: heading(base.titleLarge, 20),
+      titleMedium: heading(base.titleMedium, 17),
+      titleSmall: body(base.titleSmall, 15, FontWeight.w600),
+      bodyLarge: body(base.bodyLarge, 15),
+      bodyMedium: body(base.bodyMedium, 14),
+      bodySmall: body(base.bodySmall, 12),
+      labelLarge: body(base.labelLarge, 14, FontWeight.w600),
+      labelMedium: body(base.labelMedium, 12, FontWeight.w600),
+      labelSmall: body(base.labelSmall, 11, FontWeight.w600),
+    );
+  }
+
   static ThemeData build() {
     final base = ThemeData(
       useMaterial3: true,
@@ -35,26 +79,9 @@ class FutechiTheme {
       ),
       scaffoldBackgroundColor: FutechiColors.background,
     );
-    final textTheme = base.textTheme.apply(
-      bodyColor: FutechiColors.foreground,
-      displayColor: FutechiColors.foreground,
-      fontFamily: 'Manrope',
-    );
+    final textTheme = buildTextTheme(base.textTheme);
     return base.copyWith(
-      textTheme: textTheme.copyWith(
-        displaySmall: textTheme.displaySmall
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-        displayMedium: textTheme.displayMedium
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-        headlineMedium: textTheme.headlineMedium
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-        headlineSmall: textTheme.headlineSmall
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-        titleLarge: textTheme.titleLarge
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-        titleMedium: textTheme.titleMedium
-            ?.copyWith(fontFamily: 'DMSans', fontWeight: FontWeight.w700),
-      ),
+      textTheme: textTheme,
       cardTheme: CardThemeData(
         color: FutechiColors.card,
         elevation: 0,
@@ -100,6 +127,7 @@ class FutechiTheme {
         color: FutechiColors.primary,
         linearTrackColor: FutechiColors.secondarySoft,
       ),
+      appBarTheme: AppBarTheme(titleTextStyle: textTheme.titleLarge),
       dividerTheme: const DividerThemeData(color: FutechiColors.border),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

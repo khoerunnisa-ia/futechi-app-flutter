@@ -72,7 +72,7 @@ class NotificationsModel extends ChangeNotifier {
     }
     for (final t in treatments) {
       final reminder = treatmentStore.reminderFor(t.id);
-      if (reminder.enabled == false) continue;
+      if (reminder.enabled == false || treatmentStore.isDone(t.id)) continue;
       final snoozed = reminder.snoozedUntil;
       notifications.add(
         AppNotification(
