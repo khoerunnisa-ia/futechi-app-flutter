@@ -1,0 +1,19 @@
+# Credentials / local environment
+.env
+.env.*
+!**/.env.example
+
+# Flutter local config
+flutter-ver/.env
+flutter-ver/mqtt.local.json
+
+# Flutter build output
+flutter-ver/build/
+
+# ESP32/PlatformIO build output
+pakan-sc/**/.pio/
+pakan-sc/**/.pioenvs/
+pakan-sc/**/.vscode/*.db
+
+# Exclude the whole pakan-sc folder (contains sensitive ESP32 code)
+pakan-sc/

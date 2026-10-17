@@ -1,0 +1,80 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [eat]
+    paths:
+      - "flutter-ver/**"
+      - ".github/workflows/windows-build.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: flutter-ver
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java (required by Flutter)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create .env from example (secrets override)
+        shell: pwsh
+        working-directory: flutter-ver
+        run: |
+          Copy-Item .env.example .env
+          # Ganti nilai di .env dengan secrets GitHub bila tersedia
+          if ($env:MQTT_HOST)   { (Get-Content .env) -replace '^MQTT_HOST=.*',   "MQTT_HOST=$env:MQTT_HOST"   | Set-Content .env }
+          if ($env:MQTT_PORT)   { (Get-Content .env) -replace '^MQTT_PORT=.*',   "MQTT_PORT=$env:MQTT_PORT"   | Set-Content .env }
+          if ($env:MQTT_USER)   { (Get-Content .env) -replace '^MQTT_USER=.*',   "MQTT_USER=$env:MQTT_USER"   | Set-Content .env }
+          if ($env:MQTT_PASS)   { (Get-Content .env) -replace '^MQTT_PASS=.*',   "MQTT_PASS=$env:MQTT_PASS"   | Set-Content .env }
+          if ($env:MQTT_CLIENT_ID) { (Get-Content .env) -replace '^MQTT_CLIENT_ID=.*', "MQTT_CLIENT_ID=$env:MQTT_CLIENT_ID" | Set-Content .env }
+          if ($env:FUTECHI_CHAT_URL) { (Get-Content .env) -replace '^FUTECHI_CHAT_URL=.*', "FUTECHI_CHAT_URL=$env:FUTECHI_CHAT_URL" | Set-Content .env }
+          if ($env:LLM_API_KEY) { (Get-Content .env) -replace '^LLM_API_KEY=.*', "LLM_API_KEY=$env:LLM_API_KEY" | Set-Content .env }
+          if ($env:LLM_BASE_URL) { (Get-Content .env) -replace '^LLM_BASE_URL=.*', "LLM_BASE_URL=$env:LLM_BASE_URL" | Set-Content .env }
+          if ($env:LLM_MODEL) { (Get-Content .env) -replace '^LLM_MODEL=.*', "LLM_MODEL=$env:LLM_MODEL" | Set-Content .env }
+          if ($env:CCTV_RTSP_URL) { (Get-Content .env) -replace '^CCTV_RTSP_URL=.*', "CCTV_RTSP_URL=$env:CCTV_RTSP_URL" | Set-Content .env }
+          if ($env:CCTV_RTSP_SUBSTREAM_URL) { (Get-Content .env) -replace '^CCTV_RTSP_SUBSTREAM_URL=.*', "CCTV_RTSP_SUBSTREAM_URL=$env:CCTV_RTSP_SUBSTREAM_URL" | Set-Content .env }
+        env:
+          MQTT_HOST: ${{ secrets.MQTT_HOST }}
+          MQTT_PORT: ${{ secrets.MQTT_PORT }}
+          MQTT_USER: ${{ secrets.MQTT_USER }}
+          MQTT_PASS: ${{ secrets.MQTT_PASS }}
+          MQTT_CLIENT_ID: ${{ secrets.MQTT_CLIENT_ID }}
+          FUTECHI_CHAT_URL: ${{ secrets.FUTECHI_CHAT_URL }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          CCTV_RTSP_URL: ${{ secrets.CCTV_RTSP_URL }}
+          CCTV_RTSP_SUBSTREAM_URL: ${{ secrets.CCTV_RTSP_SUBSTREAM_URL }}
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Analyze (non-blocking)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: futechi_app_windows
+          path: |
+            flutter-ver/build/windows/x64/runner/Release/*.exe
+            flutter-ver/build/windows/x64/runner/Release/*.dll
+            flutter-ver/build/windows/x64/runner/Release/data/
+          if-no-files-found: error
+          retention-days: 30
