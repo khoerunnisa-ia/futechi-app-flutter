@@ -40,30 +40,17 @@ jobs:
       - name: Prepare .env Configuration
         working-directory: flutter-ver
         env:
-          ENV_SECRET: ${{ secrets.ENV_FILE }}
+          ENV_SECRET: ${{ secrets.ENV_FILE || secrets.ENV || vars.ENV_FILE || vars.ENV }}
         run: |
           if [ -n "$ENV_SECRET" ]; then
             echo "$ENV_SECRET" > .env
-            echo "Menggunakan konfigurasi .env dari GitHub Secrets"
+            echo "Menggunakan konfigurasi .env dari GitHub Secrets/Variables"
           elif [ -f ".env.example" ]; then
             cp .env.example .env
             echo "Menggunakan template .env.example untuk proses build"
           else
-            echo "Membuat file .env default otomatis"
-            cat << 'EOF' > .env
-MQTT_HOST=mqtt.stiatech.my.id
-MQTT_PORT=1883
-MQTT_USER=mqttuser
-MQTT_PASS=
-MQTT_TOPIC_STATUS=client2/status
-MQTT_TOPIC_FEED=client2/set/pakan
-MQTT_TOPIC_SCHEDULE=client2/set/jadwal
-MQTT_CLIENT_ID=flutter-feeder-unique-01
-FUTECHI_CHAT_URL=http://localhost:3000
-LLM_BASE_URL=https://openrouter.ai/api/v1/chat/completions
-LLM_MODEL=google/gemini-2.0-flash-001
-CCTV_AUTO_PLAY=false
-EOF
+            echo "PERINGATAN: File .env tidak ditemukan, membuat file .env kosong"
+            touch .env
           fi
 
       - name: Install Dependencies
@@ -102,28 +89,17 @@ EOF
         working-directory: flutter-ver
         shell: bash
         env:
-          ENV_SECRET: ${{ secrets.ENV_FILE }}
+          ENV_SECRET: ${{ secrets.ENV_FILE || secrets.ENV || vars.ENV_FILE || vars.ENV }}
         run: |
           if [ -n "$ENV_SECRET" ]; then
             echo "$ENV_SECRET" > .env
-            echo "Menggunakan konfigurasi .env dari GitHub Secrets"
+            echo "Menggunakan konfigurasi .env dari GitHub Secrets/Variables"
           elif [ -f ".env.example" ]; then
             cp .env.example .env
             echo "Menggunakan template .env.example untuk proses build"
           else
-            echo "Membuat file .env default otomatis..."
-            cat << 'EOF' > .env
-MQTT_BROKER_HOST=broker.emqx.io
-MQTT_BROKER_PORT=1883
-MQTT_USE_TLS=false
-MQTT_TOPIC_TELEMETRY=sensor/data
-MQTT_TOPIC_SCHEDULE=client2/set/jadwal
-MQTT_CLIENT_ID=flutter-feeder-unique-01
-FUTECHI_CHAT_URL=http://localhost:3000
-LLM_BASE_URL=https://openrouter.ai/api/v1/chat/completions
-LLM_MODEL=google/gemini-2.0-flash-001
-CCTV_AUTO_PLAY=false
-EOF
+            echo "PERINGATAN: File .env tidak ditemukan, membuat file .env kosong"
+            touch .env
           fi
 
       - name: Install Dependencies
