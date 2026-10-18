@@ -91,36 +91,48 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         const SizedBox(height: 24),
         LayoutBuilder(builder: (context, constraints) {
-          final wide = constraints.maxWidth > 800;
+          final wide = constraints.maxWidth >= 600;
           final cards = [
             for (final (title, value, note, danger) in _stats)
               FutechiCard(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title.toUpperCase(),
-                        style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: FutechiColors.mutedForeground)),
+                    Text(
+                      title.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        color: FutechiColors.mutedForeground,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(value,
-                        style: Theme.of(context)
-                            .textTheme
-                            .displaySmall
-                            ?.copyWith(
-                                color: danger ? FutechiColors.danger : null)),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                        color: danger ? FutechiColors.danger : FutechiColors.foreground,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text(note,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: FutechiColors.mutedForeground)),
+                    Text(
+                      note,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: FutechiColors.mutedForeground,
+                      ),
+                    ),
                   ],
                 ),
               ),
           ];
           if (wide) {
             return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (final card in cards) ...[
                   Expanded(child: card),
@@ -131,7 +143,10 @@ class _HistoryPageState extends State<HistoryPage> {
           }
           return Column(
             children: [
-              for (final card in cards) ...[card, const SizedBox(height: 16)],
+              for (final card in cards) ...[
+                card,
+                if (card != cards.last) const SizedBox(height: 16),
+              ],
             ],
           );
         }),

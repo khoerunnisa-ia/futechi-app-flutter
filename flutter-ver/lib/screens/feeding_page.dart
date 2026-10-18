@@ -32,8 +32,8 @@ class _FeedingPageState extends State<FeedingPage> {
   final List<_FeedingItem> _items = [
     _FeedingItem('06:00', 'Sesi Pagi', false),
     _FeedingItem('7:00', 'Sesi Pagi', true),
-    _FeedingItem('16:30', 'Sesi Sore', true),
-    _FeedingItem('17:00', 'Sesi Sore', false),
+    _FeedingItem('16:30', 'Sesi Sore', false),
+    _FeedingItem('17:00', 'Sesi Sore', true),
   ];
 
   late final FeederController _controller =

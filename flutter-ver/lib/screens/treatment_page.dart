@@ -54,8 +54,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
           title: 'Treatment & Batch',
           description: 'Kelola batch dan jadwal perawatan ayam',
           action: FilledButton.icon(
-            onPressed: () =>
-                Navigator.of(context).pushNamed(FutechiRoutes.batchRegistration),
+            onPressed: () => Navigator.of(context)
+                .pushNamed(FutechiRoutes.batchRegistration),
             icon: const Icon(Icons.add),
             label: const Text('Add Batch'),
           ),
@@ -72,7 +72,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 2),
                         decoration: BoxDecoration(
                           color: FutechiColors.secondarySoft.withAlpha(120),
                           borderRadius: BorderRadius.circular(12),
@@ -116,7 +117,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                               fontSize: 12,
-                                              color: FutechiColors.mutedForeground),
+                                              color: FutechiColors
+                                                  .mutedForeground),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -127,7 +129,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
                                           color: b.isActive
                                               ? FutechiColors.successSoft
                                               : FutechiColors.secondarySoft,
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         child: Text(
                                           b.isActive ? 'Aktif' : 'Selesai',
@@ -153,7 +156,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
                     ),
                     const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
                         color: batch.isActive
                             ? FutechiColors.successSoft
@@ -180,7 +184,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
                   final cells = [
                     _meta('JENIS AYAM', batch.breed),
                     _meta('UMUR', '${batch.ageInDays} Hari'),
-                    _meta('POPULASI', '${numberFmt.format(batch.chickenCount)} Ayam'),
+                    _meta('POPULASI',
+                        '${numberFmt.format(batch.chickenCount)} Ayam'),
                     _meta('LOKASI', batch.location),
                   ];
                   if (wide) {
@@ -197,7 +202,10 @@ class _TreatmentPageState extends State<TreatmentPage> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final cell in cells) ...[cell, const SizedBox(height: 16)],
+                      for (final cell in cells) ...[
+                        cell,
+                        const SizedBox(height: 16)
+                      ],
                     ],
                   );
                 }),
@@ -209,71 +217,109 @@ class _TreatmentPageState extends State<TreatmentPage> {
         Section(
           title: 'Jadwal Perawatan',
           child: LayoutBuilder(builder: (context, constraints) {
-            final columns = constraints.maxWidth > 980 ? 3 : 1;
-            return GridView.count(
-              crossAxisCount: columns,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.05,
-              children: [
-                for (final t in treatments)
-                  FutechiCard(
-                    onTap: () => Navigator.of(context)
-                        .pushNamed('/treatment/detail', arguments: t.id),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: FutechiColors.warningSoft,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Icon(
-                            treatmentIcon(t),
-                            color: FutechiColors.warning,
+            final wide = constraints.maxWidth >= 768;
+            final cards = [
+              for (final t in treatments)
+                FutechiCard(
+                  padding: const EdgeInsets.all(20),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed('/treatment/detail', arguments: t.id),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: FutechiColors.warningSoft,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Icon(
+                          treatmentIcon(t),
+                          color: FutechiColors.warning,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        t.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Target: ${t.target}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: FutechiColors.mutedForeground,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: FutechiColors.secondarySoft,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          t.dueLabel,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(t.name,
-                            style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 4),
-                        Text('Target: ${t.target}',
-                            style: const TextStyle(
-                                fontSize: 13, color: FutechiColors.mutedForeground)),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: FutechiColors.secondarySoft,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(t.dueLabel, style: const TextStyle(fontSize: 12)),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: FutechiColors.border),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const Spacer(),
-                        Container(
-                          height: 36,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: FutechiColors.border),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Lihat Detail',
-                                  style: TextStyle(fontWeight: FontWeight.w600)),
-                              SizedBox(width: 4),
-                              Icon(Icons.chevron_right, size: 16),
-                            ],
-                          ),
+                        alignment: Alignment.center,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Lihat Detail',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Icon(Icons.chevron_right, size: 16),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
+            ];
+
+            if (wide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final card in cards) ...[
+                    Expanded(child: card),
+                    if (card != cards.last) const SizedBox(width: 16),
+                  ],
+                ],
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final card in cards) ...[
+                  card,
+                  if (card != cards.last) const SizedBox(height: 16),
+                ],
               ],
             );
           }),
@@ -299,7 +345,8 @@ class _TreatmentPageState extends State<TreatmentPage> {
             ],
             Expanded(
               child: Text(value,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 14)),
             ),
           ],
         ),

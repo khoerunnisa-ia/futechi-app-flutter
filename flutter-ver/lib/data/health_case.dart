@@ -30,6 +30,28 @@ enum CaseLevel { kritis, peringatan }
 
 enum CaseImage { sick, morning, evening, avian }
 
+class RecoveryRecord {
+  const RecoveryRecord({
+    required this.disease,
+    required this.diagnosedAt,
+    required this.recoveredAt,
+    required this.duration,
+    required this.treatments,
+    required this.vet,
+    required this.currentCondition,
+    required this.notes,
+  });
+
+  final String disease;
+  final String diagnosedAt;
+  final String recoveredAt;
+  final String duration;
+  final List<String> treatments;
+  final String vet;
+  final String currentCondition;
+  final String notes;
+}
+
 class HealthCase {
   const HealthCase({
     required this.id,
@@ -44,12 +66,14 @@ class HealthCase {
     required this.symptoms,
     required this.image,
     required this.possibilities,
+    this.recoveryRecord,
   });
 
   final String id;
   final String chickenId;
   final String cage;
-  /// ISO-8601 timestamp with offset, e.g. 2026-07-19T08:15:00+07:00.
+
+  /// ISO-8601 timestamp with offset, e.g. 2026-10-12T08:15:00+07:00.
   final String detectedAt;
   final String date; // human-readable Indonesian date label
   final String time;
@@ -59,11 +83,13 @@ class HealthCase {
   final String symptoms;
   final CaseImage image;
   final List<DiseasePossibility> possibilities; // always 3
+  final RecoveryRecord? recoveryRecord;
 
   DiseasePossibility get topPossibility => possibilities.first;
 
   /// ISO date key (yyyy-MM-dd) derived from [detectedAt].
-  String get dateKey => detectedAt.length >= 10 ? detectedAt.substring(0, 10) : detectedAt;
+  String get dateKey =>
+      detectedAt.length >= 10 ? detectedAt.substring(0, 10) : detectedAt;
 }
 
 class SuspicionResult {
@@ -83,7 +109,8 @@ class SuspicionResult {
   final String medication;
   final String submittedAt; // ISO timestamp
 
-  factory SuspicionResult.fromJson(Map<String, dynamic> json) => SuspicionResult(
+  factory SuspicionResult.fromJson(Map<String, dynamic> json) =>
+      SuspicionResult(
         disease: json['disease'] as String,
         confidence: (json['confidence'] as num).toInt(),
         rationale: json['rationale'] as String,
@@ -102,16 +129,20 @@ class SuspicionResult {
       };
 }
 
+/// Dummy data:
+/// - 1 Menunggu Konfirmasi (paling lama 2 minggu terakhir)
+/// - 2 Sakit (paling lama 1 bulan terakhir)
+/// - 1 Sudah Sehat (dengan detail riwayat penyakit, diagnosa, tanggal sembuh, penanganan)
 const List<HealthCase> healthCases = [
   HealthCase(
     id: 'a24',
     chickenId: 'AYM-A3-23',
-    cage: 'Sangkar A-24',
-    detectedAt: '2026-07-19T08:15:00+07:00',
-    date: '19 Juli 2026',
-    time: '07:15',
+    cage: 'Sangkar A3-24',
+    detectedAt: '2026-10-12T08:15:00+07:00',
+    date: '10 Oktober 2026',
+    time: '08:15',
     session: FeedingSession.morning,
-    level: CaseLevel.kritis,
+    level: CaseLevel.peringatan,
     initialStatus: CaseStatus.pending,
     symptoms:
         'Gerak melambat, nafsu makan berkurang, dan posisi kepala terpantau tidak stabil.',
@@ -123,12 +154,15 @@ const List<HealthCase> healthCases = [
         'Kepala tidak stabil',
         'Gangguan pernapasan',
       ]),
-      DiseasePossibility(name: 'Infectious Bronchitis', confidence: 72, symptoms: [
-        'Batuk atau bersin',
-        'Napas berbunyi',
-        'Mata berair',
-        'Produksi telur menurun',
-      ]),
+      DiseasePossibility(
+          name: 'Infectious Bronchitis',
+          confidence: 72,
+          symptoms: [
+            'Batuk atau bersin',
+            'Napas berbunyi',
+            'Mata berair',
+            'Produksi telur menurun',
+          ]),
       DiseasePossibility(name: 'Avian Influenza', confidence: 58, symptoms: [
         'Lesu mendadak',
         'Jengger membiru',
@@ -139,16 +173,16 @@ const List<HealthCase> healthCases = [
   ),
   HealthCase(
     id: 'c9',
-    chickenId: 'AYM-C09-02',
-    cage: 'Sangkar C-9',
-    detectedAt: '2026-07-18T17:10:00+07:00',
-    date: '18 Juli 2026',
+    chickenId: 'AYM-C1-02',
+    cage: 'Sangkar C1-02',
+    detectedAt: '2026-10-08T17:10:00+07:00',
+    date: '2 Oktober 2026',
     time: '17:10',
     session: FeedingSession.evening,
     level: CaseLevel.kritis,
     initialStatus: CaseStatus.sick,
     symptoms:
-        'Ayam tampak lesu, lebih banyak diam, dan pola makan berubah dibanding kelompoknya.',
+        'Ayam tampak lesu, lebih banyak diam, dan pola makan berubah drastis dibanding kelompoknya.',
     image: CaseImage.avian,
     possibilities: [
       DiseasePossibility(name: 'Avian Influenza', confidence: 91, symptoms: [
@@ -173,71 +207,90 @@ const List<HealthCase> healthCases = [
   ),
   HealthCase(
     id: 'b5',
-    chickenId: 'AYM-B05-05',
-    cage: 'Sangkar B-5',
-    detectedAt: '2026-07-19T17:06:00+07:00',
-    date: '19 Juli 2026',
+    chickenId: 'AYM-B2-05',
+    cage: 'Sangkar B2-05',
+    detectedAt: '2026-09-26T17:06:00+07:00',
+    date: '26 September 2026',
     time: '17:06',
     session: FeedingSession.evening,
-    level: CaseLevel.peringatan,
-    initialStatus: CaseStatus.pending,
+    level: CaseLevel.kritis,
+    initialStatus: CaseStatus.sick,
     symptoms:
-        'Napas lebih cepat, sayap terbuka, dan aktivitas makan menurun setelah suhu kandang naik.',
+        'Napas lebih cepat, sayap terbuka, dan aktivitas makan menurun drastis setelah suhu kandang naik.',
     image: CaseImage.evening,
     possibilities: [
-      DiseasePossibility(name: 'Heat Stress', confidence: 86, symptoms: [
-        'Napas cepat',
-        'Sayap terbuka',
-        'Banyak minum',
-        'Aktivitas makan menurun',
+      DiseasePossibility(name: 'Heat Stress Akut', confidence: 88, symptoms: [
+        'Napas cepat terengah-engah',
+        'Sayap terkulai terbuka',
+        'Banyak minum berlebihan',
+        'Aktivitas makan anjlok',
       ]),
-      DiseasePossibility(name: 'Dehidrasi', confidence: 69, symptoms: [
-        'Lesu',
-        'Kulit kaki kering',
-        'Minum meningkat',
-        'Berat badan turun',
+      DiseasePossibility(name: 'Dehidrasi Berat', confidence: 71, symptoms: [
+        'Lesu terbaring',
+        'Kulit kaki kering pucat',
+        'Berat badan turun drastis',
       ]),
-      DiseasePossibility(name: 'Infeksi Saluran Pernapasan', confidence: 47, symptoms: [
-        'Batuk atau bersin',
-        'Napas berbunyi',
-        'Cairan dari hidung',
-        'Mata berair',
-      ]),
+      DiseasePossibility(
+          name: 'Infeksi Saluran Pernapasan',
+          confidence: 49,
+          symptoms: [
+            'Batuk atau bersin',
+            'Napas berbunyi',
+            'Cairan dari hidung',
+          ]),
     ],
   ),
   HealthCase(
     id: 'd12',
     chickenId: 'AYM-D1-07',
-    cage: 'Sangkar D-12',
-    detectedAt: '2026-07-18T08:09:00+07:00',
-    date: '18 Juli 2026',
+    cage: 'Sangkar D1-07',
+    detectedAt: '2026-09-22T08:09:00+07:00',
+    date: '22 September 2026',
     time: '08:09',
     session: FeedingSession.morning,
     level: CaseLevel.peringatan,
     initialStatus: CaseStatus.healthy,
     symptoms:
-        'Aktivitas makan sempat menurun dan postur terlihat kurang aktif selama pengamatan pagi.',
+        'Riwayat: Aktivitas makan sempat menurun, feses encer, dan postur terlihat kurang aktif selama pengamatan pagi.',
     image: CaseImage.morning,
     possibilities: [
-      DiseasePossibility(name: 'Gangguan Pernapasan', confidence: 74, symptoms: [
-        'Nafsu makan menurun',
-        'Feses berubah',
-        'Berat badan turun',
-        'Gerak melambat',
-      ]),
-      DiseasePossibility(name: 'Heat Stress', confidence: 52, symptoms: [
+      DiseasePossibility(
+          name: 'Gangguan Saluran Pernapasan & Malnutrisi Ringan',
+          confidence: 82,
+          symptoms: [
+            'Nafsu makan menurun',
+            'Feses berubah',
+            'Berat badan turun',
+            'Gerak melambat',
+          ]),
+      DiseasePossibility(name: 'Heat Stress Ringan', confidence: 45, symptoms: [
         'Napas cepat',
         'Sayap terbuka',
         'Banyak minum',
-        'Aktivitas makan menurun',
       ]),
-      DiseasePossibility(name: 'Dehidrasi', confidence: 38, symptoms: [
+      DiseasePossibility(name: 'Dehidrasi Awal', confidence: 32, symptoms: [
         'Lesu',
         'Kulit kaki kering',
-        'Minum meningkat',
-        'Berat badan turun',
       ]),
     ],
+    recoveryRecord: RecoveryRecord(
+      disease: 'Gangguan Saluran Pernapasan & Malnutrisi Ringan',
+      diagnosedAt: '22 Agustus 2026, 08:09 WIB',
+      recoveredAt: '12 Oktober 2026, 11:30 WIB',
+      duration: '21 Hari Masa Perawatan & Karantina',
+      treatments: [
+        'Isolasi 14 hari di kandang observasi berpendingin & ventilasi terpisah',
+        'Pemberian antibiotik pernapasan Enrofloxacin dosis 10 mg/kg BB selama 5 hari',
+        'Pemberian multivitamin Vita-Stress & larutan elektrolit pada air minum harian',
+        'Disinfeksi sangkar D-12 secara berkala 2 hari sekali dengan antiseptik kandang',
+        'Pemberian pakan konsentrat basah berprotein tinggi untuk memulihkan bobot tubuh',
+      ],
+      vet: 'drh. Hendra Setiawan, Sp.Unggas',
+      currentCondition:
+          'Kondisi saat ini: Bobot badan naik +240 gram (kembali ke batas ideal), pernapasan bersih tanpa ronkhi, nafsu makan pulih 100%, gerak lincah dan mata cerah. Telah dikembalikan ke kandang utama D-12 dan aman berbaur dengan populasi.',
+      notes:
+          'Observasi pasca-karantina selama 7 hari menunjukkan hasil bebas gejala klinis. Ayam telah dinyatakan sembuh total dengan sistem kekebalan tubuh yang stabil.',
+    ),
   ),
 ];
 
@@ -250,8 +303,8 @@ final List<HealthCase> sortedHealthCases = [...healthCases]..sort((a, b) {
 
 final HealthCase defaultHealthCase = healthCases.first;
 
-HealthCase getHealthCase(String caseId) =>
-    healthCases.firstWhere((c) => c.id == caseId, orElse: () => defaultHealthCase);
+HealthCase getHealthCase(String caseId) => healthCases
+    .firstWhere((c) => c.id == caseId, orElse: () => defaultHealthCase);
 
 HealthCase? getCaseFromThreadId(String threadId) {
   if (!threadId.startsWith('alert-')) return null;

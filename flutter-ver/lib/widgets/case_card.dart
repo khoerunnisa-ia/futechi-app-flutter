@@ -96,8 +96,13 @@ class _CompactCaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHealthy = status == CaseStatus.healthy;
     final isCritical = healthCase.level == CaseLevel.kritis;
-    final accent = isCritical ? FutechiColors.danger : FutechiColors.warning;
+    final accent = isHealthy
+        ? FutechiColors.success
+        : isCritical
+            ? FutechiColors.danger
+            : FutechiColors.warning;
     return FutechiCard(
       padding: EdgeInsets.zero,
       onTap: () => _open(context, healthCase),
@@ -127,7 +132,9 @@ class _CompactCaseCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan',
+                        isHealthy
+                            ? 'Sudah Sehat'
+                            : (healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan'),
                         style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700, color: accent),
                       ),
@@ -135,7 +142,9 @@ class _CompactCaseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${healthCase.topPossibility.name} · ${healthCase.topPossibility.confidence}%',
+                    isHealthy && healthCase.recoveryRecord != null
+                        ? 'Riwayat: ${healthCase.recoveryRecord!.disease}'
+                        : '${healthCase.topPossibility.name} · ${healthCase.topPossibility.confidence}%',
                     style: const TextStyle(
                         fontSize: 12, color: FutechiColors.mutedForeground),
                     maxLines: 1,
@@ -148,7 +157,9 @@ class _CompactCaseCard extends StatelessWidget {
                     runSpacing: 4,
                     children: [
                       Text(
-                        '${healthCase.date}, ${healthCase.time}',
+                        isHealthy && healthCase.recoveryRecord != null
+                            ? 'Sembuh: ${healthCase.recoveryRecord!.recoveredAt.split(',').first}'
+                            : '${healthCase.date}, ${healthCase.time}',
                         style: const TextStyle(fontSize: 11, color: FutechiColors.mutedForeground),
                       ),
                       StatusBadge(status: status),
@@ -174,11 +185,17 @@ class _ImageTopCaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHealthy = status == CaseStatus.healthy;
     final isCritical = healthCase.level == CaseLevel.kritis;
-    final accent = isCritical ? FutechiColors.danger : FutechiColors.warning;
+    final accent = isHealthy
+        ? FutechiColors.success
+        : isCritical
+            ? FutechiColors.danger
+            : FutechiColors.warning;
     return FutechiCard(
       padding: EdgeInsets.zero,
       onTap: () => _open(context, healthCase),
+      borderColor: isHealthy ? FutechiColors.success.withValues(alpha: 0.5) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -200,27 +217,41 @@ class _ImageTopCaseCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(healthCase.topPossibility.name,
-                              style: const TextStyle(fontWeight: FontWeight.w800)),
+                          Text(
+                            isHealthy && healthCase.recoveryRecord != null
+                                ? 'Riwayat: ${healthCase.recoveryRecord!.disease}'
+                                : healthCase.topPossibility.name,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 4),
                           Text(
-                            '${healthCase.date}, ${healthCase.time}',
+                            isHealthy && healthCase.recoveryRecord != null
+                                ? 'Diagnosa: ${healthCase.date} · Sembuh: ${healthCase.recoveryRecord!.recoveredAt.split(',').first}'
+                                : '${healthCase.date}, ${healthCase.time}',
                             style: const TextStyle(
                                 fontSize: 12, color: FutechiColors.mutedForeground),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
+                        color: isHealthy ? FutechiColors.successSoft : null,
                         border: Border.all(color: accent),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan',
+                        isHealthy
+                            ? 'Sudah Sehat'
+                            : (healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan'),
                         style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700, color: accent),
+                            fontSize: 11, fontWeight: FontWeight.w700, color: accent),
                       ),
                     ),
                   ],

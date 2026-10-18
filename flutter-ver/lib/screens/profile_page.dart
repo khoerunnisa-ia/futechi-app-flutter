@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 CircleAvatar(
                   radius: 48,
                   backgroundColor: FutechiColors.primary,
-                  child: Text('AF',
+                  child: Text('M',
                       style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.onPrimary)),
                 ),
                 const SizedBox(height: 16),

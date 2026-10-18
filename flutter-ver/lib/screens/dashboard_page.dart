@@ -372,7 +372,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       Text('1,240 ekor ayam',
                           style: TextStyle(
-                              fontSize: 12, color: FutechiColors.mutedForeground)),
+                              fontSize: 12,
+                              color: FutechiColors.mutedForeground)),
                     ],
                   ),
                 ),
@@ -510,7 +511,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const Divider(height: 24),
           row('07:00', 'Sesi Pagi', 'Pagi', 'Selesai'),
           const Divider(height: 1),
-          row('16:00', 'Sesi Sore', 'Sore', 'Menunggu'),
+          row('17:00', 'Sesi Sore', 'Sore', 'Menunggu'),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,

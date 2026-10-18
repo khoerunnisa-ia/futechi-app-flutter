@@ -53,8 +53,8 @@ class _AppShellState extends State<AppShell> {
       body: widget.child,
       floatingActionButton: widget.currentRoute == FutechiRoutes.dashboard
           ? FloatingActionButton(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed('${FutechiRoutes.techi}/dashboard'),
+              onPressed: () => Navigator.of(context)
+                  .pushNamed('${FutechiRoutes.techi}/dashboard'),
               backgroundColor: Colors.transparent,
               elevation: 0,
               highlightElevation: 0,
@@ -92,7 +92,7 @@ class _AppShellState extends State<AppShell> {
               radius: 22,
               backgroundColor: FutechiColors.secondarySoft,
               child: Text(
-                'AF',
+                'M',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   color: FutechiColors.primary,
@@ -104,8 +104,9 @@ class _AppShellState extends State<AppShell> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Anne Fremant',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                Text('Mulyo',
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 Text('Manajer Kandang',
                     style: TextStyle(
                         fontSize: 12, color: FutechiColors.mutedForeground)),
@@ -121,8 +122,8 @@ class _AppShellState extends State<AppShell> {
             clipBehavior: Clip.none,
             children: [
               IconButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(FutechiRoutes.notifications),
+                onPressed: () => Navigator.of(context)
+                    .pushNamed(FutechiRoutes.notifications),
                 icon: const Icon(Icons.notifications_outlined),
                 tooltip: 'Notifikasi',
               ),
@@ -132,7 +133,8 @@ class _AppShellState extends State<AppShell> {
                   top: 4,
                   child: Container(
                     constraints: const BoxConstraints(minWidth: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(
                       color: FutechiColors.danger,
                       borderRadius: BorderRadius.circular(10),
@@ -166,7 +168,8 @@ class _NavItem {
 const _navItems = [
   _NavItem(FutechiRoutes.dashboard, 'Dashboard', Icons.home_outlined),
   _NavItem(FutechiRoutes.history, 'History', Icons.history_outlined),
-  _NavItem(FutechiRoutes.treatment, 'Treatment', Icons.medical_services_outlined),
+  _NavItem(
+      FutechiRoutes.treatment, 'Treatment', Icons.medical_services_outlined),
   _NavItem(FutechiRoutes.feeding, 'Feeding', Icons.rice_bowl_outlined),
 ];
 
@@ -209,7 +212,8 @@ class _BottomNav extends StatelessWidget {
       child: NavigationBar(
         elevation: 0,
         backgroundColor: FutechiColors.card,
-        selectedIndex: _navItems.indexWhere(_isActive).clamp(0, _navItems.length - 1),
+        selectedIndex:
+            _navItems.indexWhere(_isActive).clamp(0, _navItems.length - 1),
         onDestinationSelected: (index) {
           final target = _navItems[index].route;
           final current = currentRoute;
@@ -221,8 +225,10 @@ class _BottomNav extends StatelessWidget {
         destinations: [
           for (final item in _navItems)
             NavigationDestination(
-              icon: Icon(item.icon, size: 22, color: FutechiColors.mutedForeground),
-              selectedIcon: Icon(item.icon, size: 22, color: FutechiColors.onPrimary),
+              icon: Icon(item.icon,
+                  size: 22, color: FutechiColors.mutedForeground),
+              selectedIcon:
+                  Icon(item.icon, size: 22, color: FutechiColors.onPrimary),
               label: item.label,
             ),
         ],

@@ -22,7 +22,7 @@ class CaseStateStore extends ChangeNotifier {
   CaseStateStore._();
   static final CaseStateStore instance = CaseStateStore._();
 
-  static const _storageKey = 'futechi-case-state-v2';
+  static const _storageKey = 'futechi-case-state-v3';
 
   Map<String, CaseEntry> _cases = {};
   bool _loaded = false;
