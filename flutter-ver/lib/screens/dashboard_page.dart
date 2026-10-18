@@ -11,6 +11,8 @@ import '../widgets/cctv_player.dart';
 import '../widgets/section.dart';
 import 'treatment_page.dart' show treatmentIcon;
 
+import '../data/weather_service.dart';
+
 /// Jam WIB (UTC+7) dalam format `HH:mm:ss`, tidak bergantung zona waktu perangkat.
 String formatWibClock(DateTime now) =>
     DateFormat('HH:mm:ss').format(now.toUtc().add(const Duration(hours: 7)));
@@ -26,11 +28,27 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   TreatmentStore get _treatmentStore => TreatmentStore.instance;
 
+  double _temperature = 31.2;
+  int _humidity = 71;
+  bool _weatherLoading = true;
+
   @override
   void initState() {
     super.initState();
     _treatmentStore.load();
     _treatmentStore.addListener(_onTreatmentsChanged);
+    _loadWeatherData();
+  }
+
+  Future<void> _loadWeatherData() async {
+    final weather = await WeatherService.instance.fetchCurrentWeather();
+    if (mounted) {
+      setState(() {
+        _temperature = weather.temperature;
+        _humidity = weather.humidity;
+        _weatherLoading = false;
+      });
+    }
   }
 
   @override
@@ -43,38 +61,38 @@ class _DashboardPageState extends State<DashboardPage> {
     if (mounted) setState(() {});
   }
 
-  static const _sensorCards = [
-    (
-      'Suhu',
-      '31.2°C',
-      'Rentang ideal 28–32°C',
-      Icons.thermostat_outlined,
-      FutechiColors.dangerSoft,
-      FutechiColors.danger,
-    ),
-    (
-      'Kelembapan',
-      '71%',
-      'Rentang ideal 60–75%',
-      Icons.water_drop_outlined,
-      FutechiColors.secondarySoft,
-      FutechiColors.primary,
-    ),
-    (
-      'Amonia',
-      '5 ppm',
-      'Aman di bawah 20 ppm',
-      Icons.eco_outlined,
-      FutechiColors.successSoft,
-      FutechiColors.success,
-    ),
-  ];
+  List<(String, String, String, IconData, Color, Color)> get _sensorCards => [
+        (
+          'Suhu',
+          '${_temperature.toStringAsFixed(1)}°C',
+          _weatherLoading ? 'Memuat suhu...' : 'Rentang ideal 28–32°C',
+          Icons.thermostat_outlined,
+          FutechiColors.dangerSoft,
+          FutechiColors.danger,
+        ),
+        (
+          'Kelembapan',
+          '$_humidity%',
+          _weatherLoading ? 'Memuat kelembapan...' : 'Rentang ideal 60–75%',
+          Icons.water_drop_outlined,
+          FutechiColors.secondarySoft,
+          FutechiColors.primary,
+        ),
+        (
+          'Amonia',
+          '5 ppm',
+          'Aman di bawah 20 ppm',
+          Icons.eco_outlined,
+          FutechiColors.successSoft,
+          FutechiColors.success,
+        ),
+      ];
 
   static const _dailyCards = [
-    (Icons.egg_outlined, '1970', 'Telur diproduksi'),
-    (Icons.favorite_border_outlined, '99.3%', 'Ayam sehat'),
-    (Icons.monitor_heart_outlined, '3', 'Anomali'),
-    (Icons.grass_outlined, '60 ton', 'Pakan terpakai'),
+    (Icons.egg_outlined, '1.140', 'Telur diproduksi'),
+    (Icons.favorite_border_outlined, '99.8%', 'Ayam sehat'),
+    (Icons.monitor_heart_outlined, '3', 'Anomali terdeteksi'),
+    (Icons.grass_outlined, '20 kg', 'Pakan terpakai'),
   ];
 
   @override
@@ -306,80 +324,107 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildBarnCard(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Stack(
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 8.2,
-            child: Image.asset(
-              'assets/images/futechi-barn.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
-                  Container(color: FutechiColors.secondarySoft),
-            ),
-          ),
-          Positioned(
-            left: 16,
-            top: 16,
-            child: _overlayChip(
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '● Kandang Bendul Merisi',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: FutechiColors.success),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmall = constraints.maxWidth < 600;
+        final aspectRatio = isSmall ? 16 / 10.5 : 16 / 8.0;
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              AspectRatio(
+                aspectRatio: aspectRatio,
+                child: Image.asset(
+                  'assets/images/futechi-barn.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: FutechiColors.secondarySoft),
+                ),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withAlpha(80),
+                        Colors.black.withAlpha(120),
+                      ],
+                    ),
                   ),
-                  Text('1,240 ekor ayam',
-                      style: TextStyle(
-                          fontSize: 12, color: FutechiColors.mutedForeground)),
-                ],
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            right: 32,
-            top: 0.18 * 310,
-            child: _overlayChip(
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Kelembapan', style: TextStyle(fontSize: 12)),
-                  Text('71%', style: TextStyle(fontWeight: FontWeight.w800)),
-                ],
+              Positioned(
+                left: 16,
+                top: 16,
+                child: _overlayChip(
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '● Formasi Bendul Merisi',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: FutechiColors.success),
+                      ),
+                      Text('1,240 ekor ayam',
+                          style: TextStyle(
+                              fontSize: 12, color: FutechiColors.mutedForeground)),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 0.32 * 600,
-            bottom: 0.16 * 310,
-            child: _overlayChip(
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Suhu', style: TextStyle(fontSize: 12)),
-                  Text('31.2°C', style: TextStyle(fontWeight: FontWeight.w800)),
-                ],
+              Positioned(
+                right: 16,
+                top: 16,
+                child: _overlayChip(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Kelembapan', style: TextStyle(fontSize: 12)),
+                      Text(
+                        '$_humidity%',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                left: 16,
+                bottom: 16,
+                child: _overlayChip(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Suhu', style: TextStyle(fontSize: 12)),
+                      Text(
+                        '${_temperature.toStringAsFixed(1)}°C',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: FilledButton.icon(
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(FutechiRoutes.history),
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('Lihat detail'),
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FilledButton.icon(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(FutechiRoutes.history),
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('Lihat detail'),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -415,9 +460,9 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Pakan Grower',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                  Text('± 20 kg · Sesi $session',
+                  Text(name,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text('± 10 kg · Sesi $session',
                       style: const TextStyle(
                           fontSize: 12, color: FutechiColors.mutedForeground)),
                 ],
@@ -463,9 +508,9 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
           const Divider(height: 24),
-          row('07:00', 'Pakan Grower', 'Pagi', 'Selesai'),
+          row('07:00', 'Sesi Pagi', 'Pagi', 'Selesai'),
           const Divider(height: 1),
-          row('16:00', 'Pakan Grower', 'Sore', 'Menunggu'),
+          row('16:00', 'Sesi Sore', 'Sore', 'Menunggu'),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,

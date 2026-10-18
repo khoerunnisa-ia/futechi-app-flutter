@@ -148,12 +148,119 @@ class _FeedingPageState extends State<FeedingPage> {
     );
   }
 
-  void _addSchedule() {
-    setState(() {
-      _items.add(_FeedingItem('22:00', 'Sesi Tambahan', true));
-    });
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Jadwal baru ditambahkan')));
+  Future<void> _syncSchedulesToDevice() async {
+    final activeSchedules = _items
+        .where((item) => item.enabled)
+        .map((item) => FeederSchedule(
+              time: item.time,
+              days: const [
+                'Senin',
+                'Selasa',
+                'Rabu',
+                'Kamis',
+                'Jumat',
+                'Sabtu',
+                'Minggu'
+              ],
+            ))
+        .toList();
+
+    final ok = await _link.publishSchedule(activeSchedules);
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Jadwal berhasil disinkronkan ke perangkat feeder (ESP32)'),
+          backgroundColor: FutechiColors.primary,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_link.state == FeederLinkState.connected
+              ? 'Gagal mengirim jadwal ke perangkat'
+              : 'Jadwal disimpan di aplikasi (feeder offline)'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _addSchedule() async {
+    final now = TimeOfDay.now();
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: now,
+      helpText: 'PILIH JAM FEEDING',
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: FutechiColors.primary,
+                onPrimary: Colors.white,
+                onSurface: FutechiColors.foreground,
+              ),
+            ),
+            child: child!,
+          ),
+        );
+      },
+    );
+
+    if (pickedTime == null || !mounted) return;
+
+    final nameController = TextEditingController(text: 'Sesi Tambahan');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Beri Nama Jadwal', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Jam: ${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')} WIB',
+              style: const TextStyle(fontWeight: FontWeight.w600, color: FutechiColors.primary),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama Sesi',
+                hintText: 'Misal: Sesi Malam',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: FutechiColors.primary),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Simpan & Kirim'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final formattedHour = pickedTime.hour.toString().padLeft(2, '0');
+      final formattedMinute = pickedTime.minute.toString().padLeft(2, '0');
+      final timeStr = '$formattedHour:$formattedMinute';
+      final sessionName = nameController.text.trim().isEmpty ? 'Sesi Tambahan' : nameController.text.trim();
+
+      setState(() {
+        _items.add(_FeedingItem(timeStr, sessionName, true));
+      });
+
+      await _syncSchedulesToDevice();
+    }
   }
 
   @override
@@ -201,10 +308,21 @@ class _FeedingPageState extends State<FeedingPage> {
                           ],
                         ),
                       ),
+                      IconButton(
+                        tooltip: 'Hapus jadwal',
+                        icon: const Icon(Icons.delete_outline, size: 20, color: FutechiColors.mutedForeground),
+                        onPressed: () {
+                          setState(() => _items.removeAt(i));
+                          _syncSchedulesToDevice();
+                        },
+                      ),
+                      const SizedBox(width: 4),
                       Switch(
                         value: _items[i].enabled,
-                        onChanged: (value) =>
-                            setState(() => _items[i].enabled = value),
+                        onChanged: (value) {
+                          setState(() => _items[i].enabled = value);
+                          _syncSchedulesToDevice();
+                        },
                       ),
                     ],
                   ),

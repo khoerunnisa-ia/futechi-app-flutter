@@ -53,6 +53,7 @@ class BatchStore extends ChangeNotifier {
   static final BatchStore instance = BatchStore._();
 
   static const List<String> availableBreeds = [
+    'Ayam Lohmann Brown (Layer)',
     'Ayam Arab (Gold Fayoumi)',
     'Ayam Elba',
     'Ayam KUB (Kampung Unggul Balitbangtan)',
@@ -75,10 +76,10 @@ class BatchStore extends ChangeNotifier {
       PoultryBatch(
         id: 'batch-24',
         name: 'Batch #24',
-        breed: 'Ayam Arab (Gold Fayoumi)',
+        breed: 'Ayam Lohmann Brown (Layer)',
         chickenCount: 1240,
-        startDate: DateTime.now().subtract(const Duration(days: 65)),
-        ageInDays: 65,
+        startDate: DateTime.now().subtract(const Duration(days: 140)),
+        ageInDays: 140, // 20 minggu = 140 hari (fase awal layer)
         location: 'Jl. Bendul Merisi Selatan XI No.51, Bendul Merisi, Kec. Wonocolo, Surabaya',
         isActive: true,
       ),
@@ -108,10 +109,10 @@ class BatchStore extends ChangeNotifier {
   static final PoultryBatch _defaultFallbackBatch = PoultryBatch(
     id: 'batch-default',
     name: 'Batch #24',
-    breed: 'Ayam Arab (Gold Fayoumi)',
+    breed: 'Ayam Lohmann Brown (Layer)',
     chickenCount: 1240,
-    startDate: DateTime.now().subtract(const Duration(days: 65)),
-    ageInDays: 65,
+    startDate: DateTime.now().subtract(const Duration(days: 140)),
+    ageInDays: 140,
     location: 'Jl. Bendul Merisi Selatan XI No.51, Bendul Merisi, Kec. Wonocolo, Surabaya',
     isActive: true,
   );

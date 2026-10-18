@@ -26,6 +26,7 @@ dependencies:
   media_kit_video: ^1.2.5
   media_kit_libs_video: 1.0.7
   google_fonts: ^8.2.1
+  geolocator: ^14.0.1
 
 dev_dependencies:
   flutter_test:

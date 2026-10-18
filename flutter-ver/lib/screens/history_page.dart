@@ -39,7 +39,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   static const _stats = [
     ('Ayam dianalisis', '1,240', '100% populasi terpantau', false),
-    ('Ayam sehat', '1,237', 'Skor kesehatan 99.3%', false),
+    ('Ayam sehat', '1,237', 'Skor kesehatan 99.8%', false),
     ('Perlu perhatian', '3', '3 peringatan aktif', true),
   ];
 
@@ -187,18 +187,24 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
               const SizedBox(height: 16),
               LayoutBuilder(builder: (context, constraints) {
-                final columns = constraints.maxWidth > 980
+                final width = constraints.maxWidth;
+                final columns = width > 980
                     ? 3
-                    : constraints.maxWidth > 620
+                    : width > 600
                         ? 2
                         : 1;
+                final ratio = width > 980
+                    ? 0.82
+                    : width > 600
+                        ? 0.85
+                        : 0.95;
                 return GridView.count(
                   crossAxisCount: columns,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 0.78,
+                  childAspectRatio: ratio,
                   children: [
                     for (final item in filtered)
                       CaseCard(

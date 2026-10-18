@@ -109,11 +109,17 @@ class _TreatmentPageState extends State<TreatmentPage> {
                                           style: const TextStyle(
                                               fontWeight: FontWeight.w700)),
                                       const SizedBox(width: 8),
-                                      Text('· ${b.breed}',
+                                      Expanded(
+                                        child: Text(
+                                          '· ${b.breed}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                               fontSize: 12,
-                                              color: FutechiColors.mutedForeground)),
-                                      const Spacer(),
+                                              color: FutechiColors.mutedForeground),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 2),

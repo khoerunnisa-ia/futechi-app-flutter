@@ -108,31 +108,48 @@ class _CompactCaseCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: caseImage(healthCase.image, width: 80, height: 80, fit: BoxFit.cover),
+              child: caseImage(healthCase.image, width: 72, height: 72, fit: BoxFit.cover),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(healthCase.chickenId,
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          healthCase.chickenId,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan',
+                        style: TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w700, color: accent),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 2),
                   Text(
-                    '${healthCase.topPossibility.name} · Confidence ${healthCase.topPossibility.confidence}%',
+                    '${healthCase.topPossibility.name} · ${healthCase.topPossibility.confidence}%',
                     style: const TextStyle(
-                        fontSize: 13, color: FutechiColors.mutedForeground),
+                        fontSize: 12, color: FutechiColors.mutedForeground),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 10,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(
-                        'Terdeteksi pada: ${healthCase.date}, ${healthCase.time}',
-                        style: const TextStyle(fontSize: 11),
+                        '${healthCase.date}, ${healthCase.time}',
+                        style: const TextStyle(fontSize: 11, color: FutechiColors.mutedForeground),
                       ),
                       StatusBadge(status: status),
                     ],
@@ -140,13 +157,8 @@ class _CompactCaseCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              healthCase.level.name == 'kritis' ? 'Kritis' : 'Peringatan',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w700, color: accent),
-            ),
-            const Icon(Icons.chevron_right, size: 16, color: FutechiColors.mutedForeground),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right, size: 18, color: FutechiColors.mutedForeground),
           ],
         ),
       ),
