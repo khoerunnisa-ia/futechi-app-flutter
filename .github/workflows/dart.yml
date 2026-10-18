@@ -1,0 +1,125 @@
+name: Build Release (Android & Windows)
+
+on:
+  push:
+    branches: [ "main", "master", "eat" ]
+    paths:
+      - 'flutter-ver/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ "main", "master", "eat" ]
+    paths:
+      - 'flutter-ver/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Prepare .env Configuration
+        working-directory: flutter-ver
+        env:
+          ENV_SECRET: ${{ secrets.ENV_FILE }}
+        run: |
+          if [ -n "$ENV_SECRET" ]; then
+            echo "$ENV_SECRET" > .env
+            echo "Menggunakan konfigurasi .env dari GitHub Secrets"
+          else
+            cp .env.example .env
+            echo "Menggunakan template .env.example untuk proses build"
+          fi
+
+      - name: Install Dependencies
+        working-directory: flutter-ver
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        working-directory: flutter-ver
+        run: flutter build apk --release
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: futechi-android-apk
+          path: flutter-ver/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  build-windows:
+    name: Build Windows Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows Desktop Support
+        run: flutter config --enable-windows-desktop
+
+      - name: Prepare .env Configuration
+        working-directory: flutter-ver
+        shell: bash
+        env:
+          ENV_SECRET: ${{ secrets.ENV_FILE }}
+        run: |
+          if [ -n "$ENV_SECRET" ]; then
+            echo "$ENV_SECRET" > .env
+            echo "Menggunakan konfigurasi .env dari GitHub Secrets"
+          else
+            cp .env.example .env
+            echo "Menggunakan template .env.example untuk proses build"
+          fi
+
+      - name: Install Dependencies
+        working-directory: flutter-ver
+        run: flutter pub get
+
+      - name: Build Windows Release Executable
+        working-directory: flutter-ver
+        run: flutter build windows --release
+
+      - name: Package Windows Release as ZIP
+        shell: pwsh
+        run: |
+          $releaseDir = Resolve-Path flutter-ver/build/windows/**/runner/Release | Select-Object -First 1
+          if ($releaseDir) {
+            Write-Host "Mengemas direktori rilis: $releaseDir"
+            Compress-Archive -Path "$releaseDir/*" -DestinationPath "flutter-ver/futechi-windows-release.zip" -Force
+          } else {
+            Write-Error "Direktori rilis Windows tidak ditemukan!"
+            exit 1
+          }
+
+      - name: Upload Windows Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: futechi-windows-release
+          path: flutter-ver/futechi-windows-release.zip
+          if-no-files-found: error
+          retention-days: 14
