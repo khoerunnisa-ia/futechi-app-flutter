@@ -84,6 +84,9 @@ class _ConsultationPageState extends State<ConsultationPage> {
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
+                          backgroundColor: status == CaseStatus.sick
+                              ? FutechiColors.dangerSoft
+                              : null,
                           foregroundColor: status == CaseStatus.sick
                               ? FutechiColors.danger
                               : FutechiColors.foreground,
@@ -91,6 +94,7 @@ class _ConsultationPageState extends State<ConsultationPage> {
                             color: status == CaseStatus.sick
                                 ? FutechiColors.danger
                                 : FutechiColors.border,
+                            width: status == CaseStatus.sick ? 1.5 : 1.0,
                           ),
                         ),
                         onPressed: () =>
@@ -117,8 +121,10 @@ class _ConsultationPageState extends State<ConsultationPage> {
                               ? FutechiColors.success
                               : FutechiColors.primary,
                         ),
-                        onPressed: () => CaseStateStore.instance
-                            .setStatus(current.id, CaseStatus.healthy),
+                        onPressed: status == CaseStatus.sick
+                            ? null
+                            : () => CaseStateStore.instance
+                                .setStatus(current.id, CaseStatus.healthy),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -140,11 +146,15 @@ class _ConsultationPageState extends State<ConsultationPage> {
                     padding: const EdgeInsets.only(top: 12),
                     child: Center(
                       child: Text(
-                        'Status tersimpan: ${caseStatusLabel(status)}',
-                        style: const TextStyle(
+                        status == CaseStatus.sick
+                            ? 'Status: Terkonfirmasi Sakit'
+                            : 'Status: ${caseStatusLabel(status)}',
+                        style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: FutechiColors.success),
+                            fontWeight: FontWeight.w700,
+                            color: status == CaseStatus.sick
+                                ? FutechiColors.danger
+                                : FutechiColors.success),
                       ),
                     ),
                   ),
@@ -162,10 +172,11 @@ class _ConsultationPageState extends State<ConsultationPage> {
           Row(
             children: [
               Image.asset(
-                'assets/images/techi-mascot.png',
-                width: 48,
-                height: 48,
-                errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
+                'assets/images/icon_chatbot.png',
+                width: 44,
+                height: 44,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const SizedBox(width: 44, height: 44),
               ),
               const SizedBox(width: 12),
               Expanded(

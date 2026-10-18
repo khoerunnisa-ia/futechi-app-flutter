@@ -1,4 +1,5 @@
 # Futechi (Flutter)
+TODO : di hero banner seharusnya jam dan waktu nya real time
 
 Port Flutter dari aplikasi web Futechi (Smart Poultry Farm) yang mencakup integrasi IoT Feeder (MQTT ESP32), Live Streaming CCTV Kamera Tapo (RTSP media_kit), dan Chat AI Konsultasi Penyakit Techi (Direct Cloud LLM via OpenRouter/Groq).
 

@@ -11,6 +11,7 @@ import '../screens/notifications_page.dart';
 import '../screens/profile_page.dart';
 import '../screens/treatment_detail_page.dart';
 import '../screens/treatment_page.dart';
+import '../screens/batch_registration_page.dart';
 import '../screens/techi/techi_chat_screen.dart';
 import 'app_shell.dart';
 
@@ -28,6 +29,7 @@ class FutechiRoutes {
   static const feeding = '/feeding';
   static const treatment = '/treatment';
   static const treatmentDetail = '/treatment/detail';
+  static const batchRegistration = '/treatment/register-batch';
   static const notifications = '/notifications';
   static const profile = '/profile';
   static const techi = '/techi';
@@ -63,6 +65,9 @@ Route<Object?> buildRoute(RouteSettings settings) {
       break;
     case FutechiRoutes.treatmentDetail:
       page = TreatmentDetailPage(treatmentId: id ?? 'vaksin-nd');
+      break;
+    case FutechiRoutes.batchRegistration:
+      page = const BatchRegistrationPage();
       break;
     case FutechiRoutes.notifications:
       page = const NotificationsPage();

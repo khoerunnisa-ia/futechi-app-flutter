@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../app/router.dart';
 import '../app/theme.dart';
+import '../data/batch_data.dart';
 import '../data/treatments.dart';
 import '../widgets/case_card.dart';
 import '../widgets/section.dart';
@@ -14,11 +17,36 @@ IconData treatmentIcon(Treatment treatment) => switch (treatment.id) {
     };
 
 /// Port of TreatmentPage from futechi-pages.tsx.
-class TreatmentPage extends StatelessWidget {
+class TreatmentPage extends StatefulWidget {
   const TreatmentPage({super.key});
 
   @override
+  State<TreatmentPage> createState() => _TreatmentPageState();
+}
+
+class _TreatmentPageState extends State<TreatmentPage> {
+  @override
+  void initState() {
+    super.initState();
+    BatchStore.instance.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    BatchStore.instance.removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final batchStore = BatchStore.instance;
+    final batches = batchStore.batches;
+    final batch = batchStore.selectedBatch;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
       children: [
@@ -26,8 +54,8 @@ class TreatmentPage extends StatelessWidget {
           title: 'Treatment & Batch',
           description: 'Kelola batch dan jadwal perawatan ayam',
           action: FilledButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Form batch baru siap digunakan'))),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(FutechiRoutes.batchRegistration),
             icon: const Icon(Icons.add),
             label: const Text('Add Batch'),
           ),
@@ -42,35 +70,112 @@ class TreatmentPage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Flexible(
-                      child: Text('Batch #24',
-                          style: Theme.of(context).textTheme.headlineSmall),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: FutechiColors.secondarySoft.withAlpha(120),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: FutechiColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: batch.id,
+                            isExpanded: true,
+                            icon: const Icon(Icons.unfold_more,
+                                color: FutechiColors.foreground, size: 20),
+                            selectedItemBuilder: (context) {
+                              return batches.map((b) {
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    b.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList();
+                            },
+                            items: [
+                              for (final b in batches)
+                                DropdownMenuItem(
+                                  value: b.id,
+                                  child: Row(
+                                    children: [
+                                      Text(b.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w700)),
+                                      const SizedBox(width: 8),
+                                      Text('· ${b.breed}',
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: FutechiColors.mutedForeground)),
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: b.isActive
+                                              ? FutechiColors.successSoft
+                                              : FutechiColors.secondarySoft,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          b.isActive ? 'Aktif' : 'Selesai',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: b.isActive
+                                                ? FutechiColors.success
+                                                : FutechiColors.mutedForeground,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                            onChanged: (id) {
+                              if (id != null) batchStore.selectBatch(id);
+                            },
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
-                        color: FutechiColors.successSoft,
-                        borderRadius: BorderRadius.circular(6),
+                        color: batch.isActive
+                            ? FutechiColors.successSoft
+                            : FutechiColors.secondarySoft,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text('Aktif',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: FutechiColors.success)),
+                      child: Text(
+                        batch.isActive ? 'Aktif' : 'Selesai',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: batch.isActive
+                              ? FutechiColors.success
+                              : FutechiColors.mutedForeground,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 LayoutBuilder(builder: (context, constraints) {
-                  final wide = constraints.maxWidth > 620;
+                  final wide = constraints.maxWidth > 700;
+                  final numberFmt = NumberFormat.decimalPattern('id');
                   final cells = [
-                    _meta('UMUR', '65 Hari'),
-                    _meta('POPULASI', '1.240 Ayam'),
-                    _meta(
-                      'LOKASI',
-                      'Jl. Bendul Merisi Selatan XI No.51, Bendul Merisi, Kec. Wonocolo, Surabaya',
-                    ),
+                    _meta('JENIS AYAM', batch.breed),
+                    _meta('UMUR', '${batch.ageInDays} Hari'),
+                    _meta('POPULASI', '${numberFmt.format(batch.chickenCount)} Ayam'),
+                    _meta('LOKASI', batch.location),
                   ];
                   if (wide) {
                     return Row(
@@ -78,7 +183,7 @@ class TreatmentPage extends StatelessWidget {
                       children: [
                         for (final cell in cells) ...[
                           Expanded(child: cell),
-                          if (cell != cells.last) const SizedBox(width: 20),
+                          if (cell != cells.last) const SizedBox(width: 16),
                         ],
                       ],
                     );

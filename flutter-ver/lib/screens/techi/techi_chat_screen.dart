@@ -267,7 +267,20 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
         backgroundColor: FutechiColors.card,
         surfaceTintColor: FutechiColors.card,
         automaticallyImplyLeading: false,
-        title: Text('Techi AI', style: Theme.of(context).textTheme.titleLarge),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/icon_chatbot.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox(width: 32, height: 32),
+            ),
+            const SizedBox(width: 10),
+            Text('Techi AI', style: Theme.of(context).textTheme.titleLarge),
+          ],
+        ),
         centerTitle: true,
         actions: [
           if (isLandscape)
@@ -440,10 +453,12 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton(
-                  onPressed: () {
-                    _caseStore.setStatus(healthCase!.id, CaseStatus.healthy);
-                    _persist(_client.turns);
-                  },
+                  onPressed: status == CaseStatus.sick
+                      ? null
+                      : () {
+                          _caseStore.setStatus(healthCase!.id, CaseStatus.healthy);
+                          _persist(_client.turns);
+                        },
                   child: const Text('Tandai Sehat'),
                 ),
               ),
@@ -476,12 +491,14 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: turn.role == 'user'
-                ? FutechiColors.primary
+                ? FutechiColors.secondarySoft
                 : FutechiColors.card,
             borderRadius: BorderRadius.circular(16),
-            border: turn.role == 'user'
-                ? null
-                : Border.all(color: FutechiColors.border),
+            border: Border.all(
+              color: turn.role == 'user'
+                  ? FutechiColors.primary.withAlpha(70)
+                  : FutechiColors.border,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,12 +506,12 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
               if (isSubmission)
                 const Row(
                   children: [
-                    Icon(Icons.medical_services_outlined, size: 16, color: FutechiColors.onPrimary),
+                    Icon(Icons.medical_services_outlined, size: 16, color: FutechiColors.foreground),
                     SizedBox(width: 8),
                     Text('Form Suspection dikirim',
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: FutechiColors.onPrimary)),
+                            color: FutechiColors.foreground)),
                   ],
                 ),
               if (!isSubmission && markdownText.isNotEmpty)
@@ -502,18 +519,20 @@ class _TechiChatScreenState extends State<TechiChatScreen> {
                   data: markdownText,
                   selectable: true,
                   styleSheet: MarkdownStyleSheet(
-                    p: TextStyle(
+                    p: const TextStyle(
                       fontSize: 14,
                       height: 1.5,
-                      color: turn.role == 'user'
-                          ? FutechiColors.onPrimary
-                          : FutechiColors.foreground,
+                      color: FutechiColors.foreground,
                     ),
-                    strong: TextStyle(
+                    strong: const TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: turn.role == 'user'
-                          ? FutechiColors.onPrimary
-                          : FutechiColors.foreground,
+                      color: FutechiColors.foreground,
+                    ),
+                    code: const TextStyle(
+                      color: FutechiColors.foreground,
+                    ),
+                    listBullet: const TextStyle(
+                      color: FutechiColors.foreground,
                     ),
                   ),
                 ),

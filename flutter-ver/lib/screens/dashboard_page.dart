@@ -48,7 +48,6 @@ class _DashboardPageState extends State<DashboardPage> {
       'Suhu',
       '31.2°C',
       'Rentang ideal 28–32°C',
-      '↑ 0.8°C dari kemarin',
       Icons.thermostat_outlined,
       FutechiColors.dangerSoft,
       FutechiColors.danger,
@@ -57,7 +56,6 @@ class _DashboardPageState extends State<DashboardPage> {
       'Kelembapan',
       '71%',
       'Rentang ideal 60–75%',
-      '↑ 2% dari kemarin',
       Icons.water_drop_outlined,
       FutechiColors.secondarySoft,
       FutechiColors.primary,
@@ -66,7 +64,6 @@ class _DashboardPageState extends State<DashboardPage> {
       'Amonia',
       '5 ppm',
       'Aman di bawah 20 ppm',
-      '↓ 1 ppm dari kemarin',
       Icons.eco_outlined,
       FutechiColors.successSoft,
       FutechiColors.success,
@@ -99,69 +96,59 @@ class _DashboardPageState extends State<DashboardPage> {
                 crossAxisCount: columns,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 16,
-                mainAxisExtent: 84,
+                mainAxisExtent: 88,
               ),
               children: [
                 for (final card in _sensorCards)
                   FutechiCard(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                        horizontal: 16, vertical: 12),
                     child: Row(
                       children: [
                         Container(
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: card.$6,
+                            color: card.$5,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(card.$5, color: card.$7),
+                          child: Icon(card.$4, color: card.$6),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(card.$1,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600)),
-                              Text(card.$3,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color: FutechiColors.mutedForeground)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(card.$2,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall),
-                              ),
                               Text(
-                                card.$4,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                card.$1,
                                 style: const TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: FutechiColors.success,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                card.$3,
+                                softWrap: true,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  height: 1.25,
+                                  color: FutechiColors.mutedForeground,
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            card.$2,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ),
                       ],
@@ -210,11 +197,9 @@ class _DashboardPageState extends State<DashboardPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                      flex: 3, child: _buildTreatmentSection(context)),
+                  Expanded(flex: 3, child: _buildTreatmentSection(context)),
                   const SizedBox(width: 24),
-                  Expanded(
-                      flex: 2, child: _buildDailySummary(context)),
+                  Expanded(flex: 2, child: _buildDailySummary(context)),
                 ],
               );
             }
@@ -247,7 +232,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             Positioned.fill(
-              child: DecoratedBox(
+                child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
@@ -271,7 +256,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: FutechiColors.success,
                         borderRadius: BorderRadius.circular(999),
@@ -288,7 +274,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SizedBox(height: 16),
                     Text(
                       'Pusat Informasi Peternakan',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(color: FutechiColors.background),
+                      style: Theme.of(context)
+                          .textTheme
+                          .displaySmall
+                          ?.copyWith(color: FutechiColors.background),
                     ),
                     const SizedBox(height: 12),
                     const Text(
@@ -298,10 +287,12 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SizedBox(height: 28),
                     const Row(
                       children: [
-                        Icon(Icons.schedule_outlined, size: 16, color: Colors.white60),
+                        Icon(Icons.schedule_outlined,
+                            size: 16, color: Colors.white60),
                         SizedBox(width: 8),
                         WibClock(
-                            style: TextStyle(fontSize: 12, color: Colors.white60)),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.white60)),
                       ],
                     ),
                   ],
@@ -324,7 +315,8 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Image.asset(
               'assets/images/futechi-barn.jpg',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: FutechiColors.secondarySoft),
+              errorBuilder: (_, __, ___) =>
+                  Container(color: FutechiColors.secondarySoft),
             ),
           ),
           Positioned(
@@ -338,7 +330,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     '● Kandang Bendul Merisi',
                     style: TextStyle(
-                        fontWeight: FontWeight.w800, color: FutechiColors.success),
+                        fontWeight: FontWeight.w800,
+                        color: FutechiColors.success),
                   ),
                   Text('1,240 ekor ayam',
                       style: TextStyle(
@@ -397,7 +390,8 @@ class _DashboardPageState extends State<DashboardPage> {
         color: FutechiColors.card.withAlpha(242),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(color: Color(0x1F000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+              color: Color(0x1F000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       child: child,
@@ -412,7 +406,10 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Row(
           children: [
             Text(time,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: FutechiColors.primary)),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: FutechiColors.primary)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -431,7 +428,9 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: done ? FutechiColors.success : FutechiColors.mutedForeground,
+                color: done
+                    ? FutechiColors.success
+                    : FutechiColors.mutedForeground,
               ),
             ),
           ],
@@ -449,7 +448,8 @@ class _DashboardPageState extends State<DashboardPage> {
               Text('Jadwal Feeding',
                   style: Theme.of(context).textTheme.titleLarge),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: FutechiColors.warningSoft,
                   borderRadius: BorderRadius.circular(999),
@@ -515,7 +515,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(value,
-                                style: Theme.of(context).textTheme.headlineSmall),
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall),
                           ),
                           Text(label,
                               maxLines: 1,
@@ -542,7 +543,8 @@ class _DashboardPageState extends State<DashboardPage> {
     return Section(
       title: 'Perawatan & Kesehatan',
       action: TextButton(
-        onPressed: () => Navigator.of(context).pushNamed(FutechiRoutes.treatment),
+        onPressed: () =>
+            Navigator.of(context).pushNamed(FutechiRoutes.treatment),
         child: const Text('Lihat semua'),
       ),
       child: FutechiCard(
@@ -643,8 +645,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 onPressed: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   await _treatmentStore.markDone(t.id);
-                  messenger.showSnackBar(SnackBar(
-                      content: Text('${t.name} ditandai selesai')));
+                  messenger.showSnackBar(
+                      SnackBar(content: Text('${t.name} ditandai selesai')));
                 },
                 icon: const Icon(Icons.check, size: 18),
                 label: const Text('Tandai Selesai'),

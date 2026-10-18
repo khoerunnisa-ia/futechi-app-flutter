@@ -2,6 +2,12 @@
 .env
 .env.*
 !**/.env.example
+*.local.json
+*.log
+key.properties
+*.keystore
+*.jks
+local.properties
 
 # Flutter local config
 flutter-ver/.env
@@ -9,6 +15,14 @@ flutter-ver/mqtt.local.json
 
 # Flutter build output
 flutter-ver/build/
+**/build/
+
+# IDE & OS temporary files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
 
 # ESP32/PlatformIO build output
 pakan-sc/**/.pio/

@@ -40,13 +40,14 @@ class _AppShellState extends State<AppShell> {
     if (mounted) setState(() {});
   }
 
-  bool get _isChat =>
+  bool get _isStandalone =>
       widget.currentRoute.startsWith('${FutechiRoutes.techi}/') ||
-      widget.currentRoute == FutechiRoutes.techi;
+      widget.currentRoute == FutechiRoutes.techi ||
+      widget.currentRoute == FutechiRoutes.batchRegistration;
 
   @override
   Widget build(BuildContext context) {
-    if (_isChat) return widget.child;
+    if (_isStandalone) return widget.child;
     return Scaffold(
       appBar: _buildHeader(context),
       body: widget.child,
@@ -54,17 +55,18 @@ class _AppShellState extends State<AppShell> {
           ? FloatingActionButton(
               onPressed: () =>
                   Navigator.of(context).pushNamed('${FutechiRoutes.techi}/dashboard'),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              highlightElevation: 0,
+              focusElevation: 0,
+              hoverElevation: 0,
+              splashColor: Colors.transparent,
               tooltip: 'Techi AI',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: Image.asset(
-                  'assets/images/icon_chatbot.jpeg',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                'assets/images/icon_chatbot.png',
+                width: 54,
+                height: 54,
+                fit: BoxFit.contain,
               ),
             )
           : null,
@@ -182,15 +184,31 @@ class _BottomNav extends StatelessWidget {
       data: NavigationBarThemeData(
         backgroundColor: FutechiColors.card,
         indicatorColor: FutechiColors.primary,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
+              color: FutechiColors.onPrimary,
+              size: 22,
+            );
+          }
+          return const IconThemeData(
+            color: FutechiColors.mutedForeground,
+            size: 22,
+          );
+        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
               color: states.contains(WidgetState.selected)
                   ? FutechiColors.primary
                   : FutechiColors.mutedForeground,
             )),
       ),
       child: NavigationBar(
+        elevation: 0,
+        backgroundColor: FutechiColors.card,
         selectedIndex: _navItems.indexWhere(_isActive).clamp(0, _navItems.length - 1),
         onDestinationSelected: (index) {
           final target = _navItems[index].route;
@@ -203,8 +221,8 @@ class _BottomNav extends StatelessWidget {
         destinations: [
           for (final item in _navItems)
             NavigationDestination(
-              icon: Icon(item.icon, size: 22),
-              selectedIcon: Icon(item.icon, size: 22),
+              icon: Icon(item.icon, size: 22, color: FutechiColors.mutedForeground),
+              selectedIcon: Icon(item.icon, size: 22, color: FutechiColors.onPrimary),
               label: item.label,
             ),
         ],

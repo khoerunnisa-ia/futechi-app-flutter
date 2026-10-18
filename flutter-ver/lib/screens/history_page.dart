@@ -39,7 +39,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
   static const _stats = [
     ('Ayam dianalisis', '1,240', '100% populasi terpantau', false),
-    ('Ayam sehat', '1,237', 'Skor kesehatan 92%', false),
+    ('Ayam sehat', '1,237', 'Skor kesehatan 99.3%', false),
     ('Perlu perhatian', '3', '3 peringatan aktif', true),
   ];
 
@@ -60,15 +60,12 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> _pickDate() async {
-    final availableDates = sortedHealthCases.map((c) => c.dateKey).toSet();
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _date ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: now,
-      selectableDayPredicate: (day) =>
-          availableDates.contains(day.toIso8601String().substring(0, 10)),
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 1),
       helpText: 'Pilih tanggal analisis',
       cancelText: 'Reset',
       confirmText: 'Terapkan',
@@ -108,11 +105,16 @@ class _HistoryPageState extends State<HistoryPage> {
                             color: FutechiColors.mutedForeground)),
                     const SizedBox(height: 8),
                     Text(value,
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(color: danger ? FutechiColors.danger : null)),
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
+                            ?.copyWith(
+                                color: danger ? FutechiColors.danger : null)),
                     const SizedBox(height: 8),
                     Text(note,
                         style: const TextStyle(
-                            fontSize: 12, color: FutechiColors.mutedForeground)),
+                            fontSize: 12,
+                            color: FutechiColors.mutedForeground)),
                   ],
                 ),
               ),
@@ -143,11 +145,13 @@ class _HistoryPageState extends State<HistoryPage> {
           ),
           child: Column(
             children: [
-              for (final item
-                  in sortedHealthCases.where((c) => store.statusFor(c) != CaseStatus.healthy).take(3))
+              for (final item in sortedHealthCases
+                  .where((c) => store.statusFor(c) != CaseStatus.healthy)
+                  .take(3))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: CaseCard(healthCase: item, status: store.statusFor(item)),
+                  child:
+                      CaseCard(healthCase: item, status: store.statusFor(item)),
                 ),
             ],
           ),
@@ -197,7 +201,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   childAspectRatio: 0.78,
                   children: [
                     for (final item in filtered)
-                      CaseCard(healthCase: item, status: store.statusFor(item), imageTop: true),
+                      CaseCard(
+                          healthCase: item,
+                          status: store.statusFor(item),
+                          imageTop: true),
                   ],
                 );
               }),
@@ -232,8 +239,7 @@ class _HistoryPageState extends State<HistoryPage> {
     final selected = _session == value;
     return FilledButton.tonal(
       style: FilledButton.styleFrom(
-        backgroundColor:
-            selected ? FutechiColors.primary : FutechiColors.card,
+        backgroundColor: selected ? FutechiColors.primary : FutechiColors.card,
         foregroundColor:
             selected ? FutechiColors.onPrimary : FutechiColors.foreground,
         minimumSize: const Size(0, 36),
@@ -246,8 +252,18 @@ class _HistoryPageState extends State<HistoryPage> {
 
   static String _formatDate(DateTime date) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
