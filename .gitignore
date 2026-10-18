@@ -8,6 +8,7 @@ key.properties
 *.keystore
 *.jks
 local.properties
+*.apk
 
 # Flutter local config
 flutter-ver/.env
