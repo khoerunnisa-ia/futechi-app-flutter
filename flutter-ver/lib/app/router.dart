@@ -8,6 +8,7 @@ import '../screens/feeding_page.dart';
 import '../screens/health_alerts_page.dart';
 import '../screens/history_page.dart';
 import '../screens/notifications_page.dart';
+import '../screens/miniatur_page.dart';
 import '../screens/profile_page.dart';
 import '../screens/treatment_detail_page.dart';
 import '../screens/treatment_page.dart';
@@ -33,6 +34,7 @@ class FutechiRoutes {
   static const notifications = '/notifications';
   static const profile = '/profile';
   static const techi = '/techi';
+  static const miniatur = '/miniatur';
 }
 
 Route<Object?> buildRoute(RouteSettings settings) {
@@ -71,6 +73,9 @@ Route<Object?> buildRoute(RouteSettings settings) {
       break;
     case FutechiRoutes.notifications:
       page = const NotificationsPage();
+      break;
+    case FutechiRoutes.miniatur:
+      page = const MiniaturPage();
       break;
     case FutechiRoutes.profile:
       page = const ProfilePage();

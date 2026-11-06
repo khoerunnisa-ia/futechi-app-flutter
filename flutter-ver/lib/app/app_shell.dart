@@ -171,6 +171,7 @@ const _navItems = [
   _NavItem(
       FutechiRoutes.treatment, 'Treatment', Icons.medical_services_outlined),
   _NavItem(FutechiRoutes.feeding, 'Feeding', Icons.rice_bowl_outlined),
+  _NavItem(FutechiRoutes.miniatur, 'Miniatur', Icons.smart_toy_outlined),
 ];
 
 class _BottomNav extends StatelessWidget {

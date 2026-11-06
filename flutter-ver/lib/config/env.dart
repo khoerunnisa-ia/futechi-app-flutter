@@ -127,6 +127,27 @@ class Env {
   static String get topicSchedule =>
       getOr('MQTT_TOPIC_SCHEDULE', 'client2/set/jadwal');
 
+  // ===================== Miniatur Futechi =====================
+
+  /// Topik perintah miniatur `client3/set/miniatur`. Konvensi lanjutan feeder
+  /// (`client2/...`): miniatur memakai prefiks `client3`. Firmware
+  /// `miniaturFutechi` saat ini belum subscribe topik ini (lihat
+  /// implementasi_IoT.md) — perintah tetap bisa dikirim dan akan dipakai
+  /// bila firmware mendapat dukungan MQTT.
+  static String get topicMiniaturSet =>
+      getOr('MQTT_TOPIC_MINIATUR_SET', 'client3/set/miniatur');
+
+  /// Topik status miniatur `client3/status/miniatur` yang nantinya
+  /// di-publish firmware.
+  static String get topicMiniaturStatus =>
+      getOr('MQTT_TOPIC_MINIATUR_STATUS', 'client3/status/miniatur');
+
+  /// Client ID khusus koneksi miniatur. Kosong → ID acak
+  /// `futechi-miniatur-<8 hex>` (lihat [MqttMiniaturLink]). HARUS berbeda
+  /// dari `MqttFeederLink` karena app membuka dua koneksi MQTT terpisah —
+  /// client ID yang sama akan saling memutus di broker.
+  static String? get mqttMiniaturClientId => maybe('MQTT_MINIATUR_CLIENT_ID');
+
   // ===================== Backend AI =====================
 
   /// Base URL deployment react-js yang menyajikan `POST /api/chat`.
